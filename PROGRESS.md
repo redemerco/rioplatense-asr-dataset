@@ -530,6 +530,16 @@ acá el prompt exacto dado al evaluador y su veredicto completo, cada
 ronda. Esto lo hago al final, una vez que haya un resultado real que
 evaluar — no tiene sentido antes.
 
+### Repo público en GitHub
+
+A pedido de Renzo, este proyecto ahora vive también en un repo público:
+**https://github.com/redemerco/rioplatense-asr-dataset** — voy a pushear
+a medida que avanzo (no un solo push al final). Va todo el código,
+PROGRESS.md, LICENSES.md, y los manifests (metadata/texto, sin audio). El
+audio real (varios GB, licencias mixtas por fuente) se queda en el NAS —
+no tiene sentido en un repo git normal, ni hace falta Git LFS; el
+manifest con paths alcanza para referenciarlo.
+
 ### Split de test held-out armado
 
 `scripts/06_build_test_split.py` — reservé hablantes completos (nunca
