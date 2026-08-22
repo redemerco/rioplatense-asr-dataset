@@ -233,3 +233,16 @@ Estado en este checkpoint: **8,214 clips / 12.67h de train** +
 `accents` es dispareja entre shards del dataset original, hay tramos con
 poco o nulo autorreporte de acento. Sigue corriendo, faltan ~16 shards de
 train.
+
+## 2026-08-22 00:50 — Hallazgo: la metadata de acento viene en tandas, no distribuida parejo
+
+Confirmado con más shards: del 15 al 27 (salvo uno), casi todos dieron
+**0 filas Rioplatense** — pero el shard 21 solo aportó **2,938 filas de
+una** (27% del shard, muy por encima del ~2% típico de los primeros
+shards). El conteo del manifest cuadra exacto con esto (8,214 antes +
+2,938 = 11,152 ahora), así que no es un bug del filtro, es que el mirror
+de HF agrupa los shards por algún criterio de origen/importación y la
+metadata `accents` (autorreportada) sólo está presente en algunas tandas
+de clips, no en todas. Práctico: no sirve estimar el total lineal a
+partir de los primeros shards, hay que esperar a que termine para saber
+el número real. Quedan 5 shards (28 a 33).
