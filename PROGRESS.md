@@ -763,3 +763,46 @@ relanzado desde 0 steps). No cuento esto como "crash de entrenamiento"
 en sí (loss no llegó a evaluarse, no hubo NaN) sino como falla del
 comando de relanzamiento — dejo la corrección de arriba para que no se
 repita.
+
+## 2026-08-22 11:30 — Proyecto movido fuera de Desktop; venvs recreados
+
+Renzo dio con la causa raíz mejor que mi diagnóstico anterior: el
+bloqueo de TCC no es específico de crontab/launchd, es que `~/Desktop`
+(igual que Documents/Downloads) está protegido por TCC para CUALQUIER
+proceso sin Full Disk Access — y darle Full Disk Access a Terminal es
+demasiado amplio (cualquier script con acceso a Terminal podría leer todo
+el disco). La solución mejor: **mover el proyecto entero fuera de las
+carpetas protegidas**, a `~/rioplatense-asr-dataset` (directo en el
+home). Confirmé que la nueva ubicación no tiene el atributo extendido
+`com.apple.macl` (el marcador de TCC) que sí tenía Desktop.
+
+Pasos:
+1. Maté el training (no había checkpoint todavía, sin pérdida real).
+2. `mv ~/Desktop/rioplatense-asr-dataset ~/rioplatense-asr-dataset`.
+3. Reapunté el LaunchAgent (`~/Library/LaunchAgents/com.rioplatense-asr.health-check.plist`)
+   directo al script del repo (`scripts/train/health_check.sh`) — ya no
+   hace falta el wrapper en `~/.local/bin/` que había armado como
+   workaround para el problema de exec-en-Desktop (ese problema
+   desaparece por completo al no estar más en Desktop). Borré el wrapper
+   viejo.
+4. Actualicé la ruta hardcodeada en `health_check_prompt.md`.
+5. Recargué el LaunchAgent — **corrió limpio, sin el error de TCC.**
+
+**Hallazgo adicional (no relacionado a TCC): los venvs de Python no son
+relocables.** `.venv-train/bin/activate` tiene la ruta absoluta de
+creación hardcodeada (`VIRTUAL_ENV=.../Desktop/...`) — después del `mv`,
+`source activate` prendía un `PATH` que apuntaba a un directorio
+inexistente, y `python3` caía silenciosamente al intérprete de sistema
+(sin los paquetes). Recreé `.venv` y `.venv-train` desde cero en la nueva
+ubicación. El proceso de training que el chequeo automático ya había
+relanzado (con el workaround de invocar el binario del venv directo, ver
+entrada anterior) **sobrevivió sin problema** al `rm -rf` + recreación
+del venv — ya tenía todos los módulos cargados en memoria antes de que yo
+tocara los archivos, Python no vuelve a leer del disco lo ya importado.
+
+**Confirmado el chequeo automático funcionando de punta a punta**: el
+LaunchAgent lo disparó, `claude -p` diagnosticó un problema real
+(training caído por el bug de PATH), lo arregló, y dejó todo documentado
+y pusheado — sin que yo tuviera que intervenir. Corrigá la ruta del
+`activate` roto en la instrucción del prompt (arriba) para que los
+próximos chequeos usen el binario directo del venv desde el arranque.

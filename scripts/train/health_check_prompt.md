@@ -2,7 +2,7 @@ Sos un chequeo de salud automático, corriendo sin supervisión cada 12
 horas vía cron, para un fine-tuning LoRA de varias semanas que corre en
 esta misma Mac. Tu trabajo, en orden:
 
-1. `cd` a `/Users/renzodemarco/Desktop/rioplatense-asr-dataset` (ya deberías
+1. `cd` a `/Users/renzodemarco/rioplatense-asr-dataset` (ya deberías
    estar ahí si te invocaron bien, confirmalo).
 2. Revisá si el proceso de entrenamiento sigue vivo:
    `ps aux | grep finetune_lora | grep -v grep`
@@ -15,8 +15,13 @@ esta misma Mac. Tu trabajo, en orden:
      objetivo (40283 ejemplos / 8 grad-accum * 2 épocas ≈ 10070 steps),
      el entrenamiento ya terminó normalmente — no reinicies, pasá a
      "evaluación" más abajo si no se corrió todavía.
-   - Si no llegó a ese total: relanzalo con
-     `source .venv-train/bin/activate && nohup python3 scripts/train/finetune_lora.py --local-clips-dir local_clips/train --output-dir models/qwen3-asr-rioplatense-lora --max-examples 0 --max-duration-s 20 --epochs 2 --grad-accum 8 --lr 1e-4 --log-every 20 --save-every-steps 50 --auto-resume > logs/finetune.log 2>&1 &`
+   - Si no llegó a ese total: relanzalo invocando el binario del venv
+     DIRECTO, sin `source activate` (el `activate` tiene la ruta de
+     creación del venv hardcodeada — si el proyecto se movió de lugar
+     alguna vez, `source activate` apunta a un directorio que ya no
+     existe y `python3` cae al intérprete de sistema sin los paquetes;
+     invocar el binario directo evita ese problema por completo):
+     `nohup /Users/renzodemarco/rioplatense-asr-dataset/.venv-train/bin/python3 scripts/train/finetune_lora.py --local-clips-dir local_clips/train --output-dir models/qwen3-asr-rioplatense-lora --max-examples 0 --max-duration-s 20 --epochs 2 --grad-accum 8 --lr 1e-4 --log-every 20 --save-every-steps 50 --auto-resume > logs/finetune.log 2>&1 &`
      y confirmá que arrancó (mirá el log a los pocos segundos).
 5. Si el proceso SÍ está corriendo: no lo toques. Sólo observá.
 6. Señales de alarma a las que prestar atención (si aparecen, marcalas
