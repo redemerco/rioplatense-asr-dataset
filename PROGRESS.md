@@ -518,11 +518,45 @@ real — un prompt exigente que busque activamente: fugas de datos entre
 train/test, fallas metodológicas, sesgos, benchmark poco honesto,
 cualquier problema real. Si encuentra algo, arreglar y repetir el ciclo
 completo (incluida la autocrítica) hasta que no quede nada que objetar.
-Documentar acá el prompt usado y el resultado de cada ronda (encuentre
-algo o no). Para que sea una crítica genuina y no una formalidad
-autocomplaciente, la voy a correr en un agente nuevo sin mi contexto de
-sesión (sólo con acceso al repo/código/resultados) en vez de auto-
-evaluarme yo misma con todo el sesgo de haber armado todo esto.
+
+**Aclaración importante de Renzo:** no alcanza con que yo me autocritique
+dentro de esta misma sesión (mismo contexto, mismo sesgo de haber hecho
+el trabajo). Tiene que ser **otra instancia de Claude Code totalmente
+independiente** — un `claude -p "<prompt>" --dangerously-skip-permissions`
+nuevo, sin mi contexto de sesión, apuntado a los archivos reales del
+proyecto (no un resumen mío), sin saber que yo lo armé. Sólo si ese
+evaluador externo no encuentra fallas reales se puede cerrar. Documentar
+acá el prompt exacto dado al evaluador y su veredicto completo, cada
+ronda. Esto lo hago al final, una vez que haya un resultado real que
+evaluar — no tiene sentido antes.
+
+### Split de test held-out armado
+
+`scripts/06_build_test_split.py` — reservé hablantes completos (nunca
+overlap de audio, y nunca el mismo hablante en train y test) de las
+fuentes con transcripción manual/verificada:
+- **SLR61**: 9 de 44 hablantes (~20%) → **1,091 clips** a test.
+- **VoxForge**: 13 de 174 hablantes → **130 clips** a test.
+- **Common Voice**: se mantiene su split oficial (257 clips, ya estaba
+  separado).
+
+**Snac Podcast (y cualquier fuente de YouTube CC futura) queda 100% en
+train, nunca en test** — decisión deliberada: su transcripción es
+auto-caption de YouTube, no verificada. Si la usara como test, estaría
+midiendo qué tan parecido es el modelo al ASR de YouTube, no midiendo
+transcripción correcta — mezclaría los errores de esa referencia con los
+del modelo evaluado. El test set sólo usa fuentes con transcripción
+manual/validada por humanos.
+
+**Test set consolidado: 1,478 clips** (257 CV + 1,091 SLR61 + 130
+VoxForge). Selección de hablantes held-out determinística por hash (no
+random con seed) — reproducible sin guardar estado aparte.
+
+Hubo un bache al mover los archivos en el NAS (el comando de `mv` para
+los 1,091 archivos de SLR61 en un solo `ssh` se cortó por "broken pipe" —
+la línea de comando era demasiado larga) — lo arreglé mandándolo en
+tandas de 150 archivos por vez. Verificado conteo final en el NAS
+(train/test suman el total original, sin pérdidas ni duplicados).
 
 ### Setup técnico confirmado
 
