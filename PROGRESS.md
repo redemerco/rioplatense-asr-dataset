@@ -826,3 +826,28 @@ Corriendo ahora. Actualizo esta entrada con la causa raíz apenas salga.
 **No voy a reiniciar el training hasta encontrar y arreglar la causa** —
 reiniciar a ciegas sólo repetiría el mismo problema en cuanto se tope de
 nuevo con el ejemplo/patrón que lo dispara.
+
+### Causa raíz encontrada: faltaba gradient clipping
+
+El diagnóstico (170 ejemplos, sólo forward, sin backward) **no encontró
+ningún ejemplo individual con loss NaN** — todos entre 2.6 y 4.7,
+razonable para un modelo recién cargado. Esto descarta un dato corrupto
+puntual: la inestabilidad es del **backward/optimizer**, no de un clip
+específico.
+
+Causa real: el script no tenía `gradient clipping`, algo estándar en
+fine-tuning con LoRA/bf16 precisamente para evitar que una explosión de
+gradiente puntual (agravada por gradient checkpointing + bf16) corrompa
+los pesos de forma permanente y silenciosa (NaN + cualquier operación =
+NaN para siempre, no se autocorrige). Con `grad_accum=8` y ~160 ejemplos
+antes del primer log, bastó con que un solo paso de acumulación tuviera
+un gradiente inestable para que TODO el promedio reportado saliera NaN.
+
+**Fix aplicado**: `torch.nn.utils.clip_grad_norm_(trainable_params,
+max_norm=1.0)` antes de cada `opt.step()`, y si la norma resultante no es
+finita, se saltea ese update por completo (no se aplica nada corrupto,
+sólo se pierde ese paso de acumulación) en vez de aplicarlo a ciegas.
+Reentrené desde cero (no había checkpoint válido que conservar).
+Relanzado limpio, mismos hiperparámetros salvo el clipping agregado.
+Voy a vigilar de cerca los primeros logs para confirmar que no vuelve a
+pasar.

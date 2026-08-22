@@ -148,7 +148,8 @@ def main():
     model = model.to("mps")
     model.train()
 
-    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr)
+    trainable_params = [p for p in model.parameters() if p.requires_grad]
+    opt = torch.optim.AdamW(trainable_params, lr=args.lr)
 
     steps_per_epoch = len(rows) // args.grad_accum
     total_steps = steps_per_epoch * args.epochs
@@ -190,7 +191,12 @@ def main():
             accum_loss += out.loss.item()
 
             if pos % args.grad_accum == 0:
-                opt.step()
+                grad_norm = torch.nn.utils.clip_grad_norm_(trainable_params, max_norm=1.0)
+                if torch.isfinite(grad_norm):
+                    opt.step()
+                else:
+                    print(f"[WARN] grad_norm no finito ({grad_norm.item()}) en step {step+1}, "
+                          f"salteando este update para no corromper los pesos.", flush=True)
                 opt.zero_grad()
                 step += 1
                 if step % args.log_every == 0:

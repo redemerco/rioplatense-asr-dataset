@@ -26,7 +26,11 @@ esta misma Mac. Tu trabajo, en orden:
 5. Si el proceso SÍ está corriendo: no lo toques. Sólo observá.
 6. Señales de alarma a las que prestar atención (si aparecen, marcalas
    bien visible en la entrada de PROGRESS.md, empezando con "⚠️"):
-   - loss en NaN o creciendo sostenidamente en vez de bajar.
+   - loss en NaN o creciendo sostenidamente en vez de bajar (el script ya
+     tiene gradient clipping + skip-si-no-finito, así que un NaN aislado
+     no debería corromper los pesos, pero si aparecen muchos "[WARN]
+     grad_norm no finito" seguidos en `logs/finetune.log`, es señal de
+     que algo sigue inestable y vale la pena avisar).
    - el proceso se cayó más de 2 veces en las últimas 24h (revisá
      entradas previas de este chequeo en PROGRESS.md para saber cuántas
      veces reiniciaste).
