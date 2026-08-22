@@ -175,3 +175,37 @@ en el dataset con la etiqueta mal puesta — inaceptable sobre todo para el
 test set. **Decisión: LibriVox queda pendiente para una sesión con
 capacidad de escuchar audio (Renzo a mano, o un modelo con audio), no
 para esta.** No se descarga nada de LibriVox por ahora.
+
+## 2026-08-21 21:40 — SLR61 completo; caída transitoria del NAS
+
+**SLR61 terminado y sincronizado: 5,829 clips, 8.13 horas.** Manual,
+transcripción exacta (oración leída) — va a `data/train/manifest_slr61.jsonl`,
+audio en el NAS bajo `data/train/clips_slr61/`.
+
+En el medio el rsync final falló (`unexpected end of file`, código 255) y
+justo después until el NAS se volvió completamente inalcanzable — ni SSH
+ni las tools MCP conectaban (`ping` a la IP de Tailscale, 100% packet
+loss). No fue algo que yo pudiera arreglar desde acá (si el NAS no
+responde, no hay forma de entrar a reiniciar nada). Esperé y reintenté cada
+tanto; a los pocos minutos volvió solo (probablemente un blip de Tailscale
+o de la wifi del Raspberry Pi). Cuando volvió, sincronicé SLR61 a mano y
+confirmé los 5,829 clips + manifest en el NAS.
+
+**Cambio hecho por esta caída**: `01_common_voice_rioplatense.py` (que
+en ese momento seguía bajando shards de HF sin problema, ya que eso no
+depende del NAS) tenía el riesgo de que su próximo rsync fallara y tirara
+abajo el script entero, perdiendo el progreso de shards restantes. Le
+agregué:
+- reintentos con espera antes de darse por vencido en cada rsync,
+- si el NAS sigue caído tras los reintentos, no aborta: deja el lote local
+  sin sincronizar y sigue con el próximo shard (no se pierde nada, sólo
+  queda pendiente de un rsync posterior),
+- un marker file por shard ya procesado (`raw_cache/.done_cv_<split>_<i>`)
+  para no reprocesar/duplicar en el manifest si hay que reiniciar el
+  script a mano.
+
+El proceso que ya estaba corriendo tiene el código viejo cargado en
+memoria (no se actualiza solo) — si llega a crashear por esto, reiniciar
+con `python scripts/01_common_voice_rioplatense.py` ya retoma bien gracias
+a los markers (creé a mano el marker del shard test/0, que ya había
+sincronizado antes de este incidente).

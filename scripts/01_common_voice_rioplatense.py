@@ -33,6 +33,21 @@ def run(cmd, **kw):
     subprocess.run(cmd, check=True, **kw)
 
 
+def sync_to_nas(local, remote, retries=3, wait_s=20):
+    """rsync con reintentos; si el NAS está caído no aborta el script entero
+    (se queda con la copia local y sigue con el próximo shard)."""
+    for attempt in range(1, retries + 1):
+        r = subprocess.run(["rsync", "-e", RSYNC_SSH, "-a", local, remote])
+        if r.returncode == 0:
+            return True
+        print(f"[WARN] rsync falló (intento {attempt}/{retries}, código {r.returncode}) "
+              f"para {local} -> se reintenta en {wait_s}s", flush=True)
+        time.sleep(wait_s)
+    print(f"[WARN] NAS no disponible tras {retries} intentos, "
+          f"{local} se queda local por ahora.", flush=True)
+    return False
+
+
 def main():
     import pyarrow.parquet as pq  # importado acá: primero queremos fallar rápido en el chequeo de disco
 
@@ -41,10 +56,14 @@ def main():
         clips_dir = f"{out_dir}/clips"
         manifest_path = f"{out_dir}/manifest_common_voice.jsonl"
         os.makedirs(clips_dir, exist_ok=True)
-        run(["ssh", "-o", "RemoteCommand=none", "-o", "RequestTTY=no", NAS_HOST,
-             f"mkdir -p {NAS_BASE}/{clips_dir}"])
+        subprocess.run(["ssh", "-o", "RemoteCommand=none", "-o", "RequestTTY=no", NAS_HOST,
+                        f"mkdir -p {NAS_BASE}/{clips_dir}"])
 
         for i in range(n_shards):
+            done_marker = f"raw_cache/.done_cv_{split}_{i}"
+            if os.path.exists(done_marker):
+                print(f"[{split} {i+1}/{n_shards}] ya procesado (marker existe), salteo", flush=True)
+                continue
             if free_gb() < MIN_FREE_GB:
                 print(f"[STOP] menos de {MIN_FREE_GB}GB libres en disco. Frenando acá.", flush=True)
                 return
@@ -90,16 +109,20 @@ def main():
                     n_written += 1
 
             os.remove(RAW_SHARD)
+            open(done_marker, "w").close()
 
+            synced = True
             if n_written:
-                run(["rsync", "-e", RSYNC_SSH, "-a", f"{clips_dir}/",
-                     f"{NAS_HOST}:{NAS_BASE}/{clips_dir}/"])
-            run(["rsync", "-e", RSYNC_SSH, "-a", manifest_path,
-                 f"{NAS_HOST}:{NAS_BASE}/{manifest_path}"])
-            shutil.rmtree(clips_dir)
-            os.makedirs(clips_dir, exist_ok=True)
-            print(f"[{split} {i+1}/{n_shards}] sincronizado al NAS y limpiado local "
-                  f"(libre: {free_gb():.1f}GB)", flush=True)
+                synced = sync_to_nas(f"{clips_dir}/", f"{NAS_HOST}:{NAS_BASE}/{clips_dir}/")
+            sync_to_nas(manifest_path, f"{NAS_HOST}:{NAS_BASE}/{manifest_path}")
+            if synced:
+                shutil.rmtree(clips_dir)
+                os.makedirs(clips_dir, exist_ok=True)
+                print(f"[{split} {i+1}/{n_shards}] sincronizado al NAS y limpiado local "
+                      f"(libre: {free_gb():.1f}GB)", flush=True)
+            else:
+                print(f"[{split} {i+1}/{n_shards}] quedó local sin sincronizar "
+                      f"(libre: {free_gb():.1f}GB)", flush=True)
 
     print("[DONE] Common Voice Rioplatense completo.", flush=True)
 

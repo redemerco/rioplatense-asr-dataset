@@ -17,8 +17,7 @@ descartadas o sin verificar también se listan, para no re-investigarlas.
 - **Filtro aplicado:** campo `accents` conteniendo "Rioplatense" (cubre
   hablantes de Argentina y Uruguay autorreportados; Common Voice no separa
   ambos países dentro de esta etiqueta).
-- **Estado:** ver PROGRESS.md por conteo exacto de horas/clips una vez
-  corrido el filtro.
+- **Estado:** en progreso — ver PROGRESS.md por conteo actualizado.
 
 ### OpenSLR SLR61 — Crowdsourced Argentinian Spanish speech data set
 - **Licencia:** CC-BY-SA 4.0.
@@ -30,6 +29,9 @@ descartadas o sin verificar también se listan, para no re-investigarlas.
 - **Atribución requerida (CC-BY-SA):** al redistribuir, citar "Google, Inc.
   — Crowdsourced high-quality Argentinian Spanish speech data set (OpenSLR
   61)" y mantener la misma licencia CC-BY-SA 4.0 en la redistribución.
+- **Estado: completo.** 5,829 clips, 8.13 horas, en
+  `data/train/manifest_slr61.jsonl` (audio en NAS,
+  `data/train/clips_slr61/`).
 
 ## Evaluadas, no incorporadas todavía / pendientes
 
