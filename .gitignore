@@ -1,6 +1,8 @@
 .venv/
+.venv-train/
 raw_cache/
 logs/
+models/
 __pycache__/
 *.pyc
 .DS_Store
