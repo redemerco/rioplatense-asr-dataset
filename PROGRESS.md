@@ -806,3 +806,23 @@ LaunchAgent lo disparó, `claude -p` diagnosticó un problema real
 y pusheado — sin que yo tuviera que intervenir. Corrigá la ruta del
 `activate` roto en la instrucción del prompt (arriba) para que los
 próximos chequeos usen el binario directo del venv desde el arranque.
+
+## 2026-08-22 13:33 — ⚠️ Loss en NaN al primer log (step 20)
+
+El primer log real del training relanzado (post-move) dio
+`{"epoch": 0, "step": 20, "loss": NaN}`. Esto es serio: una vez que un
+gradiente NaN se aplica con `opt.step()`, los pesos LoRA quedan
+permanentemente corrompidos (NaN + cualquier operación = NaN, no se
+autocorrige entrenando más). Maté el proceso de inmediato — no había
+checkpoint guardado todavía (save cada 50 steps, sólo llegamos a 20), así
+que no se perdió ningún checkpoint válido, sólo hay que re-arrancar una
+vez encontrada y arreglada la causa.
+
+Armé `scripts/train/diagnose_nan.py`: reproduce el mismo shuffle (seed=0,
+igual que el training) y corre sólo forward (sin backward) sobre los
+primeros ~170 ejemplos para encontrar cuál produce loss NaN/Inf.
+Corriendo ahora. Actualizo esta entrada con la causa raíz apenas salga.
+
+**No voy a reiniciar el training hasta encontrar y arreglar la causa** —
+reiniciar a ciegas sólo repetiría el mismo problema en cuanto se tope de
+nuevo con el ejemplo/patrón que lo dispara.
