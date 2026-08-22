@@ -209,3 +209,12 @@ memoria (no se actualiza solo) — si llega a crashear por esto, reiniciar
 con `python scripts/01_common_voice_rioplatense.py` ya retoma bien gracias
 a los markers (creé a mano el marker del shard test/0, que ya había
 sincronizado antes de este incidente).
+
+**Test set de Common Voice Rioplatense completo: 257 clips, ~24.5 min**
+(0.41h). Chico — son clips cortos (Common Voice ronda 4-6s por clip) y el
+split de test del dataset ya viene fijado por Mozilla. Sigue siendo el
+material más confiable que tenemos para medir WER (validado por
+comunidad), pero antes de publicar conviene que Renzo escuche una
+muestra a mano para confirmar. Arrancando ahora los 33 shards de train
+(en curso, va a tardar un buen rato — cada shard son ~330MB a ritmo
+lento de red).
