@@ -1,5 +1,6 @@
 .venv/
 raw_cache/
+logs/
 __pycache__/
 *.pyc
 .DS_Store
