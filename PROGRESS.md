@@ -218,3 +218,18 @@ comunidad), pero antes de publicar conviene que Renzo escuche una
 muestra a mano para confirmar. Arrancando ahora los 33 shards de train
 (en curso, va a tardar un buen rato — cada shard son ~330MB a ritmo
 lento de red).
+
+## 2026-08-21 23:20 — Checkpoint a mitad de camino de train (17/33 shards)
+
+Un timeout de curl (código 28) tiró abajo el script una vez en el medio
+(shard train/4) — reinicio limpio gracias a los markers, sin duplicar
+nada (verificado contando líneas de manifest antes/después). Le agregué
+reintentos también a la descarga (además de los del rsync) para no tener
+que reiniciar a mano de nuevo.
+
+Estado en este checkpoint: **8,214 clips / 12.67h de train** +
+**257 clips / 0.41h de test**, ambos ya en el NAS. Un par de shards
+(15 y 16) dieron 0 filas Rioplatense — no es un error, la metadata de
+`accents` es dispareja entre shards del dataset original, hay tramos con
+poco o nulo autorreporte de acento. Sigue corriendo, faltan ~16 shards de
+train.
