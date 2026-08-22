@@ -58,12 +58,14 @@ def main():
     print(f"{len(wavs)} wavs extraídos, {len(transcripts)} transcripciones cargadas", flush=True)
 
     n_written = 0
+    seen_fids = set()  # el zip de weather duplica ~90 ids ya presentes en female (mismo audio)
     with open(MANIFEST_PATH, "a", encoding="utf-8") as mf:
         for wav_path in wavs:
             fid = os.path.splitext(os.path.basename(wav_path))[0]
             text = transcripts.get(fid)
-            if text is None:
+            if text is None or fid in seen_fids:
                 continue
+            seen_fids.add(fid)
             dest = f"{CLIPS_DIR}/{fid}.wav"
             os.replace(wav_path, dest)
             dur_out = subprocess.run(

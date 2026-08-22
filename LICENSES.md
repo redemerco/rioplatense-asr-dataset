@@ -32,9 +32,11 @@ descartadas o sin verificar también se listan, para no re-investigarlas.
 - **Atribución requerida (CC-BY-SA):** al redistribuir, citar "Google, Inc.
   — Crowdsourced high-quality Argentinian Spanish speech data set (OpenSLR
   61)" y mantener la misma licencia CC-BY-SA 4.0 en la redistribución.
-- **Estado: completo.** 5,829 clips, 8.13 horas, en
+- **Estado: completo.** 5,739 clips, 8.03 horas, en
   `data/train/manifest_slr61.jsonl` (audio en NAS,
-  `data/train/clips_slr61/`).
+  `data/train/clips_slr61/`). El zip de mensajes meteorológicos duplicaba
+  ~90 ids ya presentes en el corpus femenino general (mismo audio, mismo
+  texto) — deduplicado por `path`.
 
 ### VoxForge (subset Argentina) — mirror ciempiess/voxforge_spanish
 - **Licencia:** GPLv3 (copyleft). Declarada explícitamente por el

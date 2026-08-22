@@ -178,7 +178,8 @@ para esta.** No se descarga nada de LibriVox por ahora.
 
 ## 2026-08-21 21:40 — SLR61 completo; caída transitoria del NAS
 
-**SLR61 terminado y sincronizado: 5,829 clips, 8.13 horas.** Manual,
+**SLR61 terminado y sincronizado: 5,829 clips, 8.13 horas** (corregido
+más abajo a 5,739 clips / 8.03h — encontré 90 duplicados exactos). Manual,
 transcripción exacta (oración leída) — va a `data/train/manifest_slr61.jsonl`,
 audio en el NAS bajo `data/train/clips_slr61/`.
 
@@ -319,11 +320,21 @@ hablantes/envío, no vienen mezclados. **1,735 clips, 4.22h.**
 |---|---|---|---|---|---|
 | Common Voice 23.0 (accent=Rioplatense) | train | 11,152 | 17.27h | CC0 | validada (comunidad) |
 | Common Voice 23.0 (accent=Rioplatense) | test | 257 | 0.41h | CC0 | validada (comunidad) |
-| OpenSLR 61 (Argentina) | train | 5,829 | 8.13h | CC-BY-SA-4.0 | manual (exacta) |
+| OpenSLR 61 (Argentina) | train | 5,739 | 8.03h | CC-BY-SA-4.0 | manual (exacta) |
 | VoxForge (country=argentina) | train | 1,735 | 4.22h | GPLv3 | manual (normalizada) |
-| **Total train** | | **18,716** | **29.62h** | | |
+| **Total train** | | **18,626** | **29.52h** | | |
 | **Total test** | | **257** | **0.41h** | | |
-| **Total dataset** | | **18,973** | **30.03h** | | |
+| **Total dataset** | | **18,883** | **29.93h** | | |
+
+**Corrección posterior a este checkpoint:** al verificar conteos contra
+el NAS encontré que el manifest de SLR61 tenía 90 filas de más (5,829 en
+vez de 5,739). Causa: el zip de mensajes meteorológicos duplica ~90 ids
+que ya estaban en el corpus general femenino (mismo audio, mismo texto
+exacto — confirmé que las 90 duplicadas tienen texto idéntico letra por
+letra, no es un mismatch de contenido). Dedupliqué el manifest por
+`path` y agregué una guarda (`seen_fids`) al script para que no vuelva a
+pasar si se re-corre. Los números de la tabla de arriba ya están
+corregidos.
 
 Todo sincronizado y verificado en el NAS, manifest unificado por split en
 `data/{split}/manifest.jsonl` (via `scripts/merge_manifests.py`), detalle
