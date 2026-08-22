@@ -737,3 +737,29 @@ de "Files and Folders: Desktop" a Terminal en System Settings (30
 segundos, una sola vez), empieza a funcionar solo sin que yo toque nada
 más. Mientras tanto sigo haciendo estos chequeos yo misma dentro de la
 sesión interactiva, como ya venía.
+
+## 2026-08-22 11:28 — Chequeo automático (cron)
+
+Primer chequeo automático real (el LaunchAgent ya tiene permiso y corrió
+solo). Proceso **no estaba corriendo** y no había ningún checkpoint (0
+steps completados, `train_log.jsonl` vacío) — lejos del objetivo de
+~10070 steps, así que lo relancé.
+
+⚠️ El comando de relanzamiento indicado (`source .venv-train/bin/activate
+&& nohup python3 ...`) **falló** en este entorno de cron/LaunchAgent:
+`python3` resolvía vía PATH pero tiraba `ModuleNotFoundError:
+No module named 'soundfile'` pese a que el paquete sí está instalado en
+el venv — probablemente porque LaunchAgent no carga el perfil de shell
+completo (PATH mínimo, sin `/opt/homebrew/bin`). Confirmé que invocar el
+binario directo (`.venv-train/bin/python3 scripts/train/finetune_lora.py
+...`, sin `source activate`) funciona de forma confiable. Relancé así y
+el proceso quedó estable (PID vivo, RSS creciendo, sin crash en el primer
+minuto). **Recomendación para próximos chequeos automáticos: usar la
+ruta directa al intérprete del venv, no `source activate`.**
+
+Disco: 40GB libres, sin problema. No hay `results/baseline.json` ni
+`results/finetuned.json` todavía (esperado, entrenamiento recién
+relanzado desde 0 steps). No cuento esto como "crash de entrenamiento"
+en sí (loss no llegó a evaluarse, no hubo NaN) sino como falla del
+comando de relanzamiento — dejo la corrección de arriba para que no se
+repita.
