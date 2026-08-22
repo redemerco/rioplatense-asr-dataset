@@ -36,6 +36,24 @@ descartadas o sin verificar también se listan, para no re-investigarlas.
   `data/train/manifest_slr61.jsonl` (audio en NAS,
   `data/train/clips_slr61/`).
 
+### VoxForge (subset Argentina) — mirror ciempiess/voxforge_spanish
+- **Licencia:** GPLv3 (copyleft). Declarada explícitamente por el
+  curador: "VOXFORGE SPANISH CORPUS by Carlos Daniel Hernández Mena is
+  licensed under a GPLv3 license", heredada de la promesa original de
+  VoxForge de liberar todo audio enviado bajo GPL.
+- **Atribución requerida:** citar "VoxForge Spanish Corpus — Carlos
+  Daniel Hernández Mena / proyecto CIEMPIESS" y mantener el aviso
+  GPLv3 en cualquier redistribución de estos clips específicos (es
+  copyleft: no se puede re-licenciar esta porción como CC0/CC-BY, sólo
+  incluir como colección con su propia licencia declarada, clip por
+  clip, en el manifest).
+- **Filtro aplicado:** columna `country == "argentina"` (a diferencia de
+  Common Voice, acá el país viene limpio, sin mezclar con Uruguay/otros).
+- **Transcripción:** manual (oración leída, texto normalizado a
+  minúsculas pero con tildes) — apta para train; para test conviene
+  revisar a mano antes de confiar en el texto normalizado.
+- **Estado:** en progreso — ver PROGRESS.md por conteo actualizado.
+
 ## Evaluadas, no incorporadas todavía / pendientes
 
 - **LibriVox** — dominio público, pero sin metadata de nacionalidad de

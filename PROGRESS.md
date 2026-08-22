@@ -263,6 +263,28 @@ Todo sincronizado y verificado en el NAS
 (`Remoto/Proyectos/rioplatense-asr-dataset/data/`), copia local ya
 limpiada (18GB libres en la Mac, sin comprometer nada).
 
+### Nueva fuente encontrada: VoxForge (subset Argentina)
+
+Investigando más, apareció `ciempiess/voxforge_spanish` en HF — mirror de
+VoxForge curado por el proyecto académico CIEMPIESS (Carlos Daniel
+Hernández Mena), **49h42min, 21,692 clips**, con un campo `country`
+explícito (`argentina`/`chile`/`latinamerica`/`mexico`/`spain`/`unknown`)
+— mucho más limpio de filtrar que el `accents` de Common Voice. Licencia
+**GPLv3** (copyleft, no CC0/CC-BY, pero es una licencia abierta de un
+corpus académico publicado — entra dentro de lo que permite el brief;
+igual hay que mantener el aviso de licencia y atribución al
+redistribuir, y no se puede re-licenciar como CC0/CC-BY, sólo agregar
+como colección con licencia propia declarada por-clip). El texto viene
+"normalizado" (minúsculas) pero conserva tildes.
+
+Lancé `scripts/03_voxforge_argentina.py` (mismo patrón que Common
+Voice: 8 shards ~450MB, filtro `country == "argentina"`, sync a NAS con
+reintentos, markers para reinicios seguros). Corriendo en background
+(`logs/03_voxforge.log`). Con 6 categorías de país, si Argentina es una
+fracción pareja del total podría aportar ~8h más, pero hay que esperar
+el número real (mismo aprendizaje que con Common Voice: no estimar
+lineal antes de tiempo).
+
 **Contraste con el objetivo del brief ("varios cientos de horas"):**
 25.8h es un buen arranque limpio y 100% verificado por licencia, pero
 está lejos del objetivo final. Los candidatos obvios para escalar más
