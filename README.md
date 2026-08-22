@@ -1,10 +1,9 @@
 # Dataset de audio rioplatense para ASR
 
 Dataset de audio en español rioplatense (Argentina + Uruguay) con
-transcripción, para entrenar y evaluar ASR. Nace de un pipeline de
-transcripción de clases (`zoom-recorder`) donde se detectó que el cuello de
-botella real para mejorar ASR en rioplatense no es cómputo sino falta de
-dataset — sobre todo un test set con transcripción confiable.
+transcripción, para entrenar y evaluar ASR. Parte de la premisa de que el
+cuello de botella real para mejorar ASR en rioplatense no es cómputo sino
+falta de dataset — sobre todo un test set con transcripción confiable.
 
 Ver `BRIEF.md` (brief original), `PROGRESS.md` (log de avance, qué se
 investigó y bajó, y por qué) y `LICENSES.md` (procedencia y licencia exacta

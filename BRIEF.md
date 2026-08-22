@@ -1,14 +1,13 @@
 # Brief inicial — dataset de audio rioplatense para ASR
 
 ## Contexto
-Este proyecto nace de otro (zoom-recorder, en `~/Desktop/zoom-recorder`) donde
-se armó un pipeline de transcripción de clases. Ahí se evaluó fine-tunear un
-modelo de ASR para que entienda mejor español rioplatense (Argentina +
-Uruguay: voseo, entonación, lunfardo, léxico regional). Se concluyó que el
-verdadero cuello de botella no es cómputo sino **dataset**: hacen falta horas
-de audio rioplatense con transcripción confiable, tanto para entrenar como
-—sobre todo— para evaluar (un test set con transcripción de mala calidad da
-una métrica de WER que miente).
+Este proyecto nace de una evaluación previa de fine-tunear un modelo de ASR
+para que entienda mejor español rioplatense (Argentina + Uruguay: voseo,
+entonación, lunfardo, léxico regional). Se concluyó que el verdadero cuello
+de botella no es cómputo sino **dataset**: hacen falta horas de audio
+rioplatense con transcripción confiable, tanto para entrenar como —sobre
+todo— para evaluar (un test set con transcripción de mala calidad da una
+métrica de WER que miente).
 
 ## Objetivo
 Investigar y **armar de verdad** (no sólo listar) un dataset de audio
