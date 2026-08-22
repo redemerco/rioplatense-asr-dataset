@@ -580,3 +580,29 @@ tandas de 150 archivos por vez. Verificado conteo final en el NAS
 - Venv nuevo `.venv-train/` en este proyecto (no toco el `.venv-asr` de
   zoom-recorder): `torch` (MPS confirmado disponible), `transformers`
   5.15.1, `accelerate`, `peft`, `datasets`, `soundfile`, `librosa`.
+
+### Hallazgo crítico: esta Mac tiene sólo 8GB de RAM
+
+`sysctl hw.memsize` → 8GB total. Para un modelo de 1.7B en bf16 (~3.4GB
+sólo de pesos) eso es MUY ajustado. Probé el pipeline completo end-to-end
+con un clip real:
+- `processor.apply_chat_template` + `processor(..., output_labels=True)`
+  arma bien los inputs (labels enmascaradas en audio/padding, confirmado
+  contando tokens no-enmascarados).
+- Forward + loss: **funciona** en MPS con el modelo en bf16.
+- Forward + backward + optimizer step con LoRA (r=8, `target_modules`
+  las proyecciones de atención/MLP del decoder, ~9.9M params entrenables
+  de 2.05B totales = 0.48%) + gradient checkpointing: **funciona sin
+  crashear**, primer step ~35s.
+
+Memoria es el recurso crítico acá, no cómputo — por eso LoRA +
+`gradient_checkpointing_enable()` no son optimizaciones opcionales, son
+lo que hace que esto entre en 8GB. Un intento de medir tiempo por step en
+steady-state (5 steps seguidos) se contaminó porque lo corrí en paralelo
+con el pipeline de Snac Podcast (yt-dlp + ffmpeg decodificando el
+episodio completo a numpy) — con 8GB totales, correr las dos cosas juntas
+generó swapping severo (confirmé con `vm_stat`: sólo ~60MB de páginas
+libres en ese momento). **Lección: en esta máquina, entrenamiento y
+pipeline de datos no pueden correr en paralelo** — hay que serializar.
+Maté ese test contaminado; voy a remedir en limpio una vez que termine la
+muestra de Snac Podcast.
