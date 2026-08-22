@@ -71,7 +71,15 @@ def main():
             url = BASE_URL.format(split=split, i=i)
             t0 = time.time()
             print(f"[{split} {i+1}/{n_shards}] descargando...", flush=True)
-            run(["curl", "-sL", "--max-time", "600", "-o", RAW_SHARD, url])
+            for attempt in range(3):
+                r = subprocess.run(["curl", "-sL", "--max-time", "600", "-o", RAW_SHARD, url])
+                if r.returncode == 0:
+                    break
+                print(f"[WARN] descarga falló (intento {attempt+1}/3, código {r.returncode}), "
+                      f"reintentando...", flush=True)
+            else:
+                print(f"[STOP] no se pudo descargar {url} tras 3 intentos.", flush=True)
+                return
 
             table = pq.read_table(RAW_SHARD)
             df = table.to_pandas()
