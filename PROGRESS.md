@@ -152,3 +152,26 @@ pasar al siguiente shard. Corta solo si el disco libre baja de 3GB.
 `logs/01_common_voice.log`), va a tardar bastante (33+2 shards a
 ~1.4MB/s de descarga cada uno ronda los 4-5 min → un par de horas en
 total). Update de resultado final en la próxima entrada.
+
+### OpenSLR SLR61 — también arrancado en paralelo
+
+Confirmé formato: `line_index_*.tsv` es `<fileid>\t<transcripción>` y los
+wav están en zips bajo `es-ar/<fileid>.wav`. Escribí
+`scripts/02_openslr_slr61.py` (baja los 3 zips ~1.8GB, cruza contra los
+tsv, arma manifest, sincroniza al NAS, borra local). Corriendo en
+background (`logs/02_openslr_slr61.log`).
+
+### LibriVox — evaluado, no es automatizable en esta sesión
+
+Investigué cómo identificar narradores argentinos/uruguayos en el catálogo
+de LibriVox en español (~400+ títulos). Conclusión: **LibriVox no expone
+metadata de nacionalidad/acento del narrador** — ni en su API ni en el
+foro hay un listado estructurado. La única forma confiable de curar esto
+es escuchando muestras de cada narrador para confirmar acento rioplatense,
+y esta sesión no tiene una tool de audio para escuchar clips. Automatizarlo
+por nombre de narrador sería adivinar (un nombre no dice de dónde es la
+persona ni qué acento tiene) y arriesgaría meter narradores no-rioplatenses
+en el dataset con la etiqueta mal puesta — inaceptable sobre todo para el
+test set. **Decisión: LibriVox queda pendiente para una sesión con
+capacidad de escuchar audio (Renzo a mano, o un modelo con audio), no
+para esta.** No se descarga nada de LibriVox por ahora.
