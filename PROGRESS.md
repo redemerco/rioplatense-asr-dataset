@@ -606,3 +606,30 @@ libres en ese momento). **Lección: en esta máquina, entrenamiento y
 pipeline de datos no pueden correr en paralelo** — hay que serializar.
 Maté ese test contaminado; voy a remedir en limpio una vez que termine la
 muestra de Snac Podcast.
+
+## 2026-08-22 10:15 — Muestra de Snac Podcast completa: 31.26h de un tirón
+
+Los 30 episodios de la muestra terminaron: **22,878 clips, 31.26 horas**,
+sin errores ni licencias rechazadas. Con esto el dataset total pasa a:
+
+| Fuente | Split | Clips | Horas |
+|---|---|---|---|
+| Common Voice (Rioplatense) | train | 11,152 | 17.27h |
+| Common Voice (Rioplatense) | test | 257 | 0.41h |
+| OpenSLR 61 | train | 4,648 | ~6.8h |
+| OpenSLR 61 | test (held-out) | 1,091 | ~1.6h |
+| VoxForge Argentina | train | 1,605 | ~3.9h |
+| VoxForge Argentina | test (held-out) | 130 | ~0.3h |
+| Snac Podcast (YouTube CC-BY) | train | 22,878 | 31.26h |
+| **Total train** | | **40,283** | **58.94h** |
+| **Total test** | | **1,478** | **2.24h** |
+| **Total dataset** | | **41,761** | **61.18h** |
+
+**61h totales, bien por encima del umbral de 10-40h que Renzo confirmó
+que ya muestra mejoras reales.** Decisión: no escalo a los 875 videos
+completos del canal por ahora — con esto alcanza según el criterio que
+dio Renzo, y cada episodio más son minutos de descarga/procesamiento que
+compiten por la misma RAM escasa que necesito para el fine-tuning
+(ver hallazgo de 8GB abajo). Si el benchmark final no muestra mejora
+notoria, escalar Snac Podcast (o sumar más canales) es la primera
+palanca obvia para la iteración 2.
