@@ -661,3 +661,19 @@ iteración 1, subir a más ejemplos o más épocas es la primera palanca
 Bajé los clips de train (4.8GB) y test (533MB) a disco local
 (`local_clips/`) — entrenar leyendo del NAS por sample hubiera sido un
 cuello de botella de red constante encima de todo lo demás.
+
+## 2026-08-22 11:00 — Corrección de Renzo: tiempo no es restricción
+
+Renzo aclaró que el tiempo de entrenamiento no importa nada — la M1 está
+específicamente para esto, y si tarda semanas no hay problema. Maté el
+run de 2,000 ejemplos y **relancé con el dataset de train completo:
+40,283 ejemplos, 2 épocas**, tope de duración subido a 20s (el máximo
+real del dataset es 19.1s, así que en la práctica no descarta nada).
+A ~50s/ejemplo, esto son semanas de cómputo — corriendo en background de
+forma continua. Checkpoint cada 50 steps de optimizer (400 ejemplos,
+~5.5h) para no perder mucho progreso si hay que reiniciar por un crash.
+
+Mismo criterio de LoRA + gradient checkpointing que antes (necesarios por
+la RAM de 8GB, no por el tiempo). Sigo evaluando otros pasos del proyecto
+(repo público, documentación) sin correr nada más pesado de MPS/RAM en
+paralelo al training.
