@@ -677,3 +677,18 @@ Mismo criterio de LoRA + gradient checkpointing que antes (necesarios por
 la RAM de 8GB, no por el tiempo). Sigo evaluando otros pasos del proyecto
 (repo público, documentación) sin correr nada más pesado de MPS/RAM en
 paralelo al training.
+
+### Fix: checkpoints numerados, no uno solo que se pisa
+
+Renzo marcó un problema real: el script guardaba siempre en el mismo
+`output_dir`, pisando el checkpoint anterior — no había forma de volver
+a un checkpoint intermedio si el final resultaba peor (overfitting) ni de
+recuperar progreso si algo fallaba a mitad de camino. Corregido: cada
+guardado periódico va a `checkpoint-<step>/`, cada fin de época a
+`checkpoint-epoch<N>-step<M>/`, y el final a `checkpoint-final-step<M>/`
+— todos conviven, nada se pisa. Cada checkpoint LoRA es chico (~9.9M
+params, r=8, bf16 ≈ 20MB) así que guardar muchos no es problema de disco.
+Maté el run (recién había arrancado, sin pérdida real) y relancé con el
+fix. **Cuando llegue el momento de evaluar, voy a correr el benchmark
+contra varios checkpoints (no sólo el último) y reportar cuál generaliza
+mejor, no asumir que más steps = mejor resultado.**

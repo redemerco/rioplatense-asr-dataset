@@ -156,14 +156,17 @@ def main():
                               f"({i+1}/{len(rows)} ejemplos, {elapsed/60:.1f} min)", flush=True)
                         accum_loss = 0.0
                     if step % args.save_every_steps == 0:
-                        model.save_pretrained(args.output_dir)
-                        print(f"[checkpoint guardado en step {step}]", flush=True)
+                        ckpt_dir = f"{args.output_dir}/checkpoint-{step}"
+                        model.save_pretrained(ckpt_dir)
+                        print(f"[checkpoint guardado en {ckpt_dir}]", flush=True)
 
-            model.save_pretrained(args.output_dir)
-            print(f"[epoch {epoch} completa, checkpoint guardado]", flush=True)
+            ckpt_dir = f"{args.output_dir}/checkpoint-epoch{epoch}-step{step}"
+            model.save_pretrained(ckpt_dir)
+            print(f"[epoch {epoch} completa, checkpoint guardado en {ckpt_dir}]", flush=True)
 
-    model.save_pretrained(args.output_dir)
-    print(f"[DONE] entrenamiento completo -> {args.output_dir}", flush=True)
+    final_dir = f"{args.output_dir}/checkpoint-final-step{step}"
+    model.save_pretrained(final_dir)
+    print(f"[DONE] entrenamiento completo -> {final_dir}", flush=True)
 
 
 if __name__ == "__main__":
