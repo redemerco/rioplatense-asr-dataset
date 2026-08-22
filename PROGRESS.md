@@ -421,4 +421,91 @@ test) y `license: CC-BY-3.0`. Sincroniza al NAS cada 10 videos.
 **Corriendo ahora sobre la muestra de 30 episodios ya validados**
 (`logs/05_snac_sample.log`) para confirmar que todo el pipeline funciona
 de punta a punta antes de plantearme correrlo sobre los 875 videos
-completos (o buscar más canales similares en paralelo).
+completos (o buscar más canales similares en paralelo). Primeros
+episodios: 596-1108 clips cada uno, pipeline funcionando bien.
+
+También encontré **"Vertice"** (@Vertice_uy, Uruguay, 2.200 videos de
+entrevistas) — pero verificado por metadata real, la mayoría de sus
+videos **NO** son CC-BY (licencia `NA` = standard YouTube license en 5/5
+muestreados). Sólo el que salió en el buscador filtrado por CC tenía la
+licencia puesta a mano en ese video puntual. Descartado como fuente
+masiva (mi pipeline ya chequea licencia por video de todas formas, así
+que no habría hecho daño correrlo, pero el rendimiento sería bajísimo).
+
+## 2026-08-22 09:30 — Cambio de objetivo: benchmark real fine-tuned vs. genérico
+
+Renzo redefinió el objetivo final: en unos días quiere un **benchmark
+concreto** comparando Qwen3-ASR-1.7B genérico (el que ya está en
+producción en `~/Desktop/zoom-recorder`) contra una versión fine-tuneada
+con este dataset, evaluados ambos contra el mismo test set held-out. Y
+dos reglas adicionales:
+1. **No conformarse con una corrida.** Si la mejora no es notoria (no
+   ruido), iterar (más datos/épocas/hiperparámetros) hasta 3 intentos
+   serios; si no se logra, frenar y reportar diagnóstico en vez de seguir
+   a ciegas.
+2. **Set de métricas propio**, no sólo WER global.
+
+Pido no pedir visto bueno en cada paso — sigo a criterio propio, y sólo
+freno si hay algo genuinamente ambiguo/riesgoso (como hice con la escala
+de Snac Podcast).
+
+### Investigación del setup técnico (zoom-recorder)
+
+- Producción usa `mlx-community/Qwen3-ASR-1.7B-bf16` vía **MLX** nativo
+  (`mlx_audio.stt.generate`), no PyTorch — así corre inferencia rápido en
+  Apple Silicon. El venv `.venv-asr` de zoom-recorder NO tiene PyTorch
+  instalado (a propósito, es sólo-inferencia).
+- Encontré el checkpoint **`Qwen/Qwen3-ASR-1.7B-hf`** — la versión nativa
+  de 🤗 Transformers del mismo modelo (no la conversión MLX). Ese es el
+  que hay que usar para fine-tunear, porque `modeling_qwen3_asr.py` ya
+  soporta `labels` y computa loss estándar (cross-entropy sobre el texto)
+  — es un modelo HF normal (encoder de audio → proyector → LLM decoder),
+  así que `transformers` + `peft` (LoRA) es el camino recto, no hace
+  falta reinventar un loop de entrenamiento a mano ni pelearla en MLX
+  (que no tiene soporte de training listo para este modelo específico,
+  sólo para un modelo distinto "mega_asr" que vi de paso en `mlx_audio`).
+- Plan: **entrenar con LoRA vía transformers+peft** (venv nuevo, separado
+  del `.venv-asr` de zoom-recorder — no quiero tocar ni arriesgar el
+  entorno de producción de otro proyecto), y para evaluar de forma
+  consistente con producción, convertir/fusionar el LoRA resultante y
+  correrlo vía el mismo `mlx_audio.stt.generate` que usa producción —
+  así el benchmark compara peras con peras (mismo motor de inferencia
+  para ambos modelos, sólo cambian los pesos).
+- Reuso el `wer.py` de zoom-recorder como base para el cálculo de WER
+  (normaliza a minúsculas, saca puntuación, conserva acentos/ñ — mismo
+  criterio que ya usaron ahí, no reinvento la métrica).
+
+### Set de métricas elegido (y por qué)
+
+- **WER** (word error rate) — la métrica estándar del campo, y la que ya
+  usa zoom-recorder; necesaria para comparabilidad directa con ese
+  shootout previo.
+- **CER** (character error rate) — WER trata "vos tenés" vs "vos tenes"
+  como 100% mal en esa palabra; CER es más fino para captar mejoras
+  chicas en acentuación/ortografía que WER no distingue bien, y el
+  español rioplatense tiene mucho de eso (tildes, voseo). Sin CER,
+  una mejora real en calidad de transcripción podría no reflejarse en el
+  WER si el error sigue siendo "una palabra distinta" a nivel de token.
+- **Desglose por dificultad** (habla normal vs. rápida/con jerga) — mismo
+  criterio que el shootout de zoom-recorder (ahí "audio C2, denso en
+  jerga a ritmo forzado" fue el caso límite que reveló la debilidad real
+  de Qwen3-ASR). Un WER global puede esconder que el fine-tuning ayuda en
+  el caso común pero no en el difícil (o viceversa) — reporto ambos por
+  separado, no sólo el promedio.
+- **Tiempo de inferencia** — no es criterio de decisión (zoom-recorder ya
+  estableció que acá prioridad es calidad, no velocidad), pero lo mido y
+  reporto igual: un fine-tuning que empeorara mucho la latencia sería un
+  dato que Renzo debería conocer aunque no cambie la decisión.
+
+### Próximos pasos (en orden)
+1. Ampliar el test set held-out más allá de los 257 clips de Common Voice
+   (son pocos para medir una mejora "notoria" con confianza) — reservar
+   también algunos episodios enteros de Snac Podcast y algunos hablantes
+   de SLR61/VoxForge que NUNCA entren a train, sin overlap.
+2. Seguir juntando volumen de train (Snac Podcast a más escala + buscar
+   más fuentes) mientras se arma el resto.
+3. Armar el venv de entrenamiento (torch+transformers+peft+accelerate),
+   separado del de zoom-recorder.
+4. Script de fine-tuning LoRA + script de evaluación (WER/CER/desglose/
+   tiempo) reutilizando `wer.py` como base.
+5. Correr, medir, iterar si hace falta (máx 3 intentos serios), reportar.
