@@ -93,3 +93,62 @@ y se anota como bloqueante.
    auto-generada) en un manifest CSV/JSONL en `data/`.
 
 Próxima entrada: resultado del filtrado de metadata de Common Voice.
+
+## 2026-08-21 21:35 — Resuelto el bloqueante de disco: NAS
+
+Renzo sugirió usar el NAS de casa (`ssh nas`, alias ya configurado en
+`~/.ssh/config` → `pi@100.121.47.10` vía Tailscale) en vez de comprometer
+los ~15GB libres de esta Mac. Confirmado:
+- NAS tiene **221GB libres** en `/srv/dev-disk-by-uuid-.../` (disco de
+  datos de 240GB, 6% usado). Mucho margen para las "cientos de horas"
+  del objetivo.
+- `ssh nas` tiene un `RemoteCommand` fijo en la config (te deja en
+  `Proyectos/` con un shell interactivo) — para correr comandos puntuales
+  o rsync hay que pisarlo: `ssh -o RemoteCommand=none -o RequestTTY=no nas
+  '<comando>'`. rsync probado y funcionando igual, con
+  `-e "ssh -o RemoteCommand=none -o RequestTTY=no"`.
+- **Decisión de arquitectura**: el procesamiento (descarga, filtrado,
+  decodificación) corre acá en la Mac (tiene mejor CPU que el Raspberry Pi
+  del NAS); el resultado final (clips + manifest) se sincroniza por rsync
+  al NAS en `Remoto/Proyectos/rioplatense-asr-dataset/data/...`, y la copia
+  local se borra lote por lote. Así el disco de la Mac nunca acumula más
+  que un shard a la vez (~350MB) — el techo de 8GB que puse antes ya no es
+  necesario como límite duro, pero lo dejo como chequeo de seguridad en el
+  script (para si el NAS se cae a mitad de camino).
+- Este repo (`~/Desktop/rioplatense-asr-dataset`) sigue viviendo en la Mac
+  con git — es sólo el dataset (`data/`) el que vive espejado en el NAS.
+  `raw_cache/` y `.venv/` quedan sólo locales (están en `.gitignore`).
+
+### Common Voice — confirmado el campo de acento y arrancada la descarga
+
+Bajé el shard 0 de test (349MB, vía la API REST directa de HF —
+`huggingface_hub` como librería Python se me colgaba sin motivo aparente
+en `HfApi().dataset_info(...)`, así que lo abandoné y pego directo a
+`https://huggingface.co/api/datasets/.../parquet/...`, que anda bien).
+
+Inspeccionado localmente: el valor exacto de la categoría armonizada es
+`"Rioplatense: Argentina, Uruguay, este de Bolivia, Paraguay"` — 153 de
+7947 filas en ese shard (~1.9%). El 78% de las filas no tiene `accents`
+(nadie lo autorreportó), así que la proporción real sobre el total del
+dataset es baja pero real. Con esa tasa, estimación gruesa sobre las 449h
+totales validadas de `es`: **del orden de 8-10 horas** de audio
+Rioplatense en todo Common Voice — bastante menos que "cientos de horas"
+pero es limpio, con transcripción validada por comunidad, y sirve
+particularmente bien como base del **test set** (que es lo que más
+importa tener confiable, según el brief).
+
+El audio viene como mp3 embebido en el parquet (`audio.bytes`, con
+`audio.path` tipo `common_voice_es_XXXXXXXX.mp3`) — se guarda tal cual,
+sin recodificar.
+
+Escribí `scripts/01_common_voice_rioplatense.py`: recorre los 33 shards de
+train + 2 de test del mirror `bookbot/common_voice_23_0_es` (CC0), baja
+cada shard completo (~330MB), filtra por `accents` conteniendo
+"Rioplatense", escribe clips + manifest (`data/{split}/manifest_common_voice.jsonl`),
+sincroniza ese lote al NAS por rsync, y borra la copia local antes de
+pasar al siguiente shard. Corta solo si el disco libre baja de 3GB.
+
+**Corriendo en background ahora** (`nohup`, PID visible en
+`logs/01_common_voice.log`), va a tardar bastante (33+2 shards a
+~1.4MB/s de descarga cada uno ronda los 4-5 min → un par de horas en
+total). Update de resultado final en la próxima entrada.
