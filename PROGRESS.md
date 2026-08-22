@@ -851,3 +851,8 @@ Reentrené desde cero (no había checkpoint válido que conservar).
 Relanzado limpio, mismos hiperparámetros salvo el clipping agregado.
 Voy a vigilar de cerca los primeros logs para confirmar que no vuelve a
 pasar.
+
+**Confirmado: primer log post-fix (step 20) dio `loss=1.4945`** — número
+normal, ya no NaN. El gradient clipping resolvió el problema. Sigo
+vigilando los próximos logs para confirmar que la loss desciende de
+forma razonable y no vuelve a aparecer ningún "grad_norm no finito".
