@@ -509,3 +509,30 @@ de Snac Podcast).
 4. Script de fine-tuning LoRA + script de evaluación (WER/CER/desglose/
    tiempo) reutilizando `wer.py` como base.
 5. Correr, medir, iterar si hace falta (máx 3 intentos serios), reportar.
+
+### Condición de cierre: autocrítica obligatoria (no negociable)
+
+Renzo agregó una condición dura: aunque logre una mejora "notoria", el
+proyecto **no se da por terminado** hasta pasar una ronda de autocrítica
+real — un prompt exigente que busque activamente: fugas de datos entre
+train/test, fallas metodológicas, sesgos, benchmark poco honesto,
+cualquier problema real. Si encuentra algo, arreglar y repetir el ciclo
+completo (incluida la autocrítica) hasta que no quede nada que objetar.
+Documentar acá el prompt usado y el resultado de cada ronda (encuentre
+algo o no). Para que sea una crítica genuina y no una formalidad
+autocomplaciente, la voy a correr en un agente nuevo sin mi contexto de
+sesión (sólo con acceso al repo/código/resultados) en vez de auto-
+evaluarme yo misma con todo el sesgo de haber armado todo esto.
+
+### Setup técnico confirmado
+
+- Checkpoint: `Qwen/Qwen3-ASR-1.7B-hf` (Apache-2.0, 4.08GB safetensors,
+  arquitectura `Qwen3ASRForConditionalGeneration`).
+- **Fine-tuning está documentado oficialmente** en el model card: pasar
+  `output_labels=True` al processor, transcripción objetivo en el turno
+  del asistente como `"language Spanish<asr_text>{transcript}"` — el
+  processor enmascara automáticamente audio/padding en las labels. No
+  hay que inventar un collator desde cero para eso.
+- Venv nuevo `.venv-train/` en este proyecto (no toco el `.venv-asr` de
+  zoom-recorder): `torch` (MPS confirmado disponible), `transformers`
+  5.15.1, `accelerate`, `peft`, `datasets`, `soundfile`, `librosa`.
