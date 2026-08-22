@@ -375,3 +375,50 @@ etiquetado.
 No voy a seguir escalando fuentes de forma autónoma más allá de esto sin
 que Renzo revise el balance licencia/esfuerzo — quedo a la espera de que
 mire este checkpoint.
+
+## 2026-08-22 09:00 — Hallazgo grande: YouTube CC-BY, canal Snac Podcast
+
+Renzo confirmó que con 10-40h ya se ven mejoras reales de WER en
+fine-tuning de este tipo, y me pidió seguir escalando fuentes sin frenar
+a pedir permiso en cada paso. Retomé la búsqueda de YouTube con filtro
+de licencia Creative Commons (usando el filtro real de YouTube, no
+adivinando por búsqueda).
+
+**Snac Podcast** (Argentina, entrevistas/charlas, @SnacPodcast) — **875
+videos**, la mayoría de 60-100 minutos. Verifiqué licencia real (no sólo
+el filtro de búsqueda, sino el campo `license` de la metadata de cada
+video vía yt-dlp) en una muestra de 30 episodios: **30/30 confirmados
+"Creative Commons Attribution license"**. Idioma original `es`/`es-US`
+(no doblaje). Si el canal entero sostiene esta licencia, y asumiendo un
+promedio de ~75min/episodio, estamos hablando de **potencialmente 700-900
+horas** — un salto de orden de magnitud vs. lo que teníamos.
+
+Encontré también "Un Podcast Uruguayo" pero es **CC BY-ND** (no derivados)
+— lo descarté, segmentar/transcribir para ASR probablemente cuenta como
+obra derivada y el brief pide descartar ante la duda.
+
+### Pipeline nuevo: YouTube CC → clips
+
+Los auto-captions de YouTube vienen en formato "rolling caption" (texto
+acumulado de a poco, se repite con cada cue) — armé
+`scripts/vtt_segment.py` para parsear eso a nivel palabra (usando los
+timestamps `<c>` inline) y cortarlo en segmentos de unos pocos segundos
+(por pausas largas o fin de oración). Probado sobre un episodio de 65
+min: 706 segmentos, ~4.6s de duración media — comparable a la
+distribución de clips de Common Voice.
+
+`scripts/05_youtube_cc_channel.py` hace todo el pipeline por video:
+chequea licencia (salteando si no es CC-BY, doble verificación aunque ya
+haya pasado el filtro de búsqueda), baja audio (`worstaudio`, para no
+gastar de más — la resolución de audio no importa tanto para ASR) +
+auto-captions, decodifica el episodio **una sola vez** a un array numpy
+(en vez de un ffmpeg por clip — con potencialmente cientos de miles de
+clips en todo el canal, eso sería demasiado lento), corta los segmentos
+en memoria, escribe manifest con `transcript_type: auto` (son
+auto-captions, no transcripción manual — sólo sirve para train, no para
+test) y `license: CC-BY-3.0`. Sincroniza al NAS cada 10 videos.
+
+**Corriendo ahora sobre la muestra de 30 episodios ya validados**
+(`logs/05_snac_sample.log`) para confirmar que todo el pipeline funciona
+de punta a punta antes de plantearme correrlo sobre los 875 videos
+completos (o buscar más canales similares en paralelo).
