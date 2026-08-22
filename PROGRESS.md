@@ -246,3 +246,39 @@ metadata `accents` (autorreportada) sólo está presente en algunas tandas
 de clips, no en todas. Práctico: no sirve estimar el total lineal a
 partir de los primeros shards, hay que esperar a que termine para saber
 el número real. Quedan 5 shards (28 a 33).
+
+## 2026-08-22 01:30 — Common Voice Rioplatense: COMPLETO
+
+Terminaron los 33 shards de train. Sin más caídas de red ni del NAS desde
+el reinicio de train/4. Total final:
+
+| | clips | horas |
+|---|---|---|
+| Common Voice train (validado) | 11,152 | 17.27h |
+| Common Voice test (validado) | 257 | 0.41h |
+| SLR61 train (manual/exacto) | 5,829 | 8.13h |
+| **Total dataset hasta ahora** | **17,238** | **25.81h** |
+
+Todo sincronizado y verificado en el NAS
+(`Remoto/Proyectos/rioplatense-asr-dataset/data/`), copia local ya
+limpiada (18GB libres en la Mac, sin comprometer nada).
+
+**Contraste con el objetivo del brief ("varios cientos de horas"):**
+25.8h es un buen arranque limpio y 100% verificado por licencia, pero
+está lejos del objetivo final. Los candidatos obvios para escalar más
+(Common Voice completo sin filtrar por acento, LibriVox, medios públicos)
+tienen trade-offs ya documentados arriba: bajar todo `es` de Common Voice
+sin filtro de acento diluiría el foco rioplatense (viola el criterio del
+brief de "no diluir con todo el español latinoamericano"); LibriVox
+necesita curación por oído que esta sesión no puede hacer; medios
+públicos necesitan verificación de licencia explícita fuente por fuente
+antes de tocar nada.
+
+### Próximo paso: mergear manifests + próxima fuente
+
+Voy a: (1) armar un manifest único por split que una las fuentes ya
+incorporadas (más fácil de consumir), (2) actualizar LICENSES.md con los
+números definitivos, (3) seguir investigando fuentes adicionales
+(portales de datos abiertos, YouTube con licencia CC explícita) para ver
+si hay más volumen real y verificable antes de considerar cerrada esta
+fase.
