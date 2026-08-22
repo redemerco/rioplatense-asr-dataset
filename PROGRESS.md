@@ -304,3 +304,63 @@ números definitivos, (3) seguir investigando fuentes adicionales
 (portales de datos abiertos, YouTube con licencia CC explícita) para ver
 si hay más volumen real y verificable antes de considerar cerrada esta
 fase.
+
+## 2026-08-22 01:45 — VoxForge Argentina completo; checkpoint consolidado
+
+VoxForge terminó rápido (shards de ~450MB, mucho más veloces que los de
+Common Voice — probablemente porque son más chicos). Todo el contenido
+Argentina estaba concentrado en el shard 1 (1,735 de 2,712 filas, 64%);
+los otros 7 shards dieron 0 — VoxForge agrupa cada shard por tanda de
+hablantes/envío, no vienen mezclados. **1,735 clips, 4.22h.**
+
+### Estado consolidado del dataset (esta sesión)
+
+| Fuente | Split | Clips | Horas | Licencia | Transcripción |
+|---|---|---|---|---|---|
+| Common Voice 23.0 (accent=Rioplatense) | train | 11,152 | 17.27h | CC0 | validada (comunidad) |
+| Common Voice 23.0 (accent=Rioplatense) | test | 257 | 0.41h | CC0 | validada (comunidad) |
+| OpenSLR 61 (Argentina) | train | 5,829 | 8.13h | CC-BY-SA-4.0 | manual (exacta) |
+| VoxForge (country=argentina) | train | 1,735 | 4.22h | GPLv3 | manual (normalizada) |
+| **Total train** | | **18,716** | **29.62h** | | |
+| **Total test** | | **257** | **0.41h** | | |
+| **Total dataset** | | **18,973** | **30.03h** | | |
+
+Todo sincronizado y verificado en el NAS, manifest unificado por split en
+`data/{split}/manifest.jsonl` (via `scripts/merge_manifests.py`), detalle
+de licencia por fuente en `LICENSES.md`. Disco de la Mac: ~18GB libres,
+sin comprometer nada (todo el peso real vive en el NAS).
+
+### Balance honesto vs. el objetivo del brief
+
+30 horas es un dataset limpio, 100% trazable por licencia, con buena
+diversidad de tipo de habla (espontánea validada de CV, lectura
+controlada de SLR61/VoxForge) — pero está a un orden de magnitud de las
+"varias centenas de horas" que pide el brief. Las fuentes que faltan para
+cerrar esa brecha (LibriVox curado a mano, medios públicos con licencia
+verificada, YouTube CC) requieren o bien capacidad de escuchar audio
+(que esta sesión no tiene) o verificación legal fuente-por-fuente que no
+se puede automatizar de forma segura sin más tiempo de investigación
+dedicado. No las fuerzo con este toolset para no arriesgar meter algo mal
+etiquetado.
+
+### Qué sigue (para que Renzo decida, no algo que vaya a asumir solo)
+
+1. **Revisar a mano una muestra del test set** (257 clips CC0 validados
+   por comunidad) antes de confiar en el WER que dé sobre él — es chico,
+   se puede escuchar entero en una sentada.
+2. **LibriVox rioplatense**: si a Renzo le interesa, necesita curación
+   por oído (identificar narradores AR/UY) — no lo puedo hacer yo en
+   esta sesión de texto. Si él (u otra sesión con audio) arma una lista
+   de narradores confirmados, vuelvo y automatizo la descarga de esos
+   audiolibros puntuales.
+3. **Medios públicos / YouTube CC / portales gubernamentales**: quedan
+   como pendientes de investigación más profunda (verificar licencia
+   caso por caso) — no encontré nada concreto y verificable en las
+   búsquedas de esta sesión, pero no es una investigación exhaustiva.
+4. Si Renzo quiere, puedo seguir buscando más corpus académicos
+   publicados (HuggingFace/Zenodo/OpenSLR) con el mismo patrón usado acá
+   — es el camino de mayor confianza aunque de retorno decreciente.
+
+No voy a seguir escalando fuentes de forma autónoma más allá de esto sin
+que Renzo revise el balance licencia/esfuerzo — quedo a la espera de que
+mire este checkpoint.

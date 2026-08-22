@@ -52,7 +52,9 @@ descartadas o sin verificar también se listan, para no re-investigarlas.
 - **Transcripción:** manual (oración leída, texto normalizado a
   minúsculas pero con tildes) — apta para train; para test conviene
   revisar a mano antes de confiar en el texto normalizado.
-- **Estado:** en progreso — ver PROGRESS.md por conteo actualizado.
+- **Estado: completo.** 1,735 clips / 4.22h (todos concentrados en el
+  primer shard — VoxForge agrupa por tandas de hablantes, no vienen
+  distribuidos parejo). `data/train/manifest_voxforge.jsonl`.
 
 ## Evaluadas, no incorporadas todavía / pendientes
 
