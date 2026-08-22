@@ -633,3 +633,31 @@ compiten por la misma RAM escasa que necesito para el fine-tuning
 (ver hallazgo de 8GB abajo). Si el benchmark final no muestra mejora
 notoria, escalar Snac Podcast (o sumar más canales) es la primera
 palanca obvia para la iteración 2.
+
+## 2026-08-22 10:40 — Timing limpio y decisión de tamaño del subset de entrenamiento
+
+Con la muestra de Snac ya terminada (sin contención de RAM), remedí el
+forward+backward+step: **steady-state ≈ 45-55s por ejemplo** (batch_size=1,
+LoRA r=8, gradient checkpointing). Un pico de 278s en medio del test fue
+por un rsync que estaba bajando los clips a disco local en paralelo —
+confirma otra vez que en esta máquina de 8GB, I/O pesado y GPU/MPS
+compiten en serio por memoria.
+
+**Esto cambia el plan de volumen de entrenamiento.** A ~50s/ejemplo,
+entrenar sobre las 40,283 clips completas (aunque sea 1 época) son
+~560 horas (~23 días) — no entra en "unos días". LoRA no necesita el
+dataset completo para adaptar bien un modelo ya preentrenado (a
+diferencia de entrenar desde cero); la literatura y la práctica estándar
+de LoRA funcionan con conjuntos bastante más chicos que full fine-tuning.
+
+**Decisión: subset curado de ~2,000 ejemplos, muestreo aleatorio del
+train combinado (las 4 fuentes), tope de duración 12s, 2 épocas.**
+2,000 × 2 épocas × ~50s ≈ 55.6h (~2.3 días) — corre en background de
+forma continua durante el resto de la sesión, que es justamente el modo
+en que está corriendo todo esto. Si el resultado no es suficiente en la
+iteración 1, subir a más ejemplos o más épocas es la primera palanca
+(documentado en el plan de iteración de arriba).
+
+Bajé los clips de train (4.8GB) y test (533MB) a disco local
+(`local_clips/`) — entrenar leyendo del NAS por sample hubiera sido un
+cuello de botella de red constante encima de todo lo demás.
