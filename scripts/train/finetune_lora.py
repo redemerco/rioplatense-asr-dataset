@@ -25,18 +25,33 @@ Uso:
     --max-examples 6000 --epochs 2
 """
 import argparse
+import glob
 import json
 import os
 import random
+import re
 import time
 
 import soundfile as sf
 import torch
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, PeftModel, get_peft_model
 from transformers import AutoProcessor, Qwen3ASRForConditionalGeneration
 
 MODEL_DIR = "models/Qwen3-ASR-1.7B-hf"
 LORA_TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+
+def find_latest_checkpoint(output_dir):
+    """Busca el checkpoint-<N> (o epoch/final) con mayor step dentro de output_dir."""
+    candidates = glob.glob(f"{output_dir}/checkpoint-*")
+    best_step, best_dir = -1, None
+    for c in candidates:
+        m = re.search(r"step(\d+)$", c) or re.search(r"checkpoint-(\d+)$", c)
+        if m:
+            step = int(m.group(1))
+            if step > best_step:
+                best_step, best_dir = step, c
+    return best_dir, best_step
 
 
 def load_rows(manifest_path, local_clips_dir, max_dur_s, max_examples, seed=13):
@@ -96,6 +111,9 @@ def main():
     ap.add_argument("--lora-r", type=int, default=8)
     ap.add_argument("--log-every", type=int, default=20)
     ap.add_argument("--save-every-steps", type=int, default=200)
+    ap.add_argument("--auto-resume", action="store_true",
+                     help="si hay checkpoints en output-dir, seguir desde el de mayor step "
+                          "en vez de arrancar de cero (para reinicios tras un crash)")
     args = ap.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -106,13 +124,25 @@ def main():
     print(f"{len(rows)} ejemplos de entrenamiento (tras filtrar por duración <= "
           f"{args.max_duration_s}s y max_examples={args.max_examples})", flush=True)
 
-    model = Qwen3ASRForConditionalGeneration.from_pretrained(MODEL_DIR, dtype=torch.bfloat16)
-    model.config.use_cache = False
-    lora_cfg = LoraConfig(
-        r=args.lora_r, lora_alpha=args.lora_r * 2, lora_dropout=0.05,
-        target_modules=LORA_TARGETS, task_type="CAUSAL_LM",
-    )
-    model = get_peft_model(model, lora_cfg)
+    base_model = Qwen3ASRForConditionalGeneration.from_pretrained(MODEL_DIR, dtype=torch.bfloat16)
+    base_model.config.use_cache = False
+
+    resume_dir, start_step = (None, 0)
+    if args.auto_resume:
+        found_dir, found_step = find_latest_checkpoint(args.output_dir)
+        if found_dir:
+            resume_dir, start_step = found_dir, found_step
+        # si no hay checkpoint todavía, resume_dir/start_step quedan en (None, 0)
+
+    if resume_dir:
+        print(f"[RESUME] retomando desde {resume_dir} (step {start_step})", flush=True)
+        model = PeftModel.from_pretrained(base_model, resume_dir, is_trainable=True)
+    else:
+        lora_cfg = LoraConfig(
+            r=args.lora_r, lora_alpha=args.lora_r * 2, lora_dropout=0.05,
+            target_modules=LORA_TARGETS, task_type="CAUSAL_LM",
+        )
+        model = get_peft_model(base_model, lora_cfg)
     model.print_trainable_parameters()
     model.gradient_checkpointing_enable()
     model = model.to("mps")
@@ -120,53 +150,65 @@ def main():
 
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=args.lr)
 
-    step = 0
+    steps_per_epoch = len(rows) // args.grad_accum
+    total_steps = steps_per_epoch * args.epochs
+    if start_step >= total_steps:
+        print(f"[DONE] ya se alcanzaron los {total_steps} steps objetivo (resume_step={start_step}).",
+              flush=True)
+        return
+
+    epoch = start_step // steps_per_epoch
+    rng = random.Random(epoch)
+    rng.shuffle(rows)
+    pos = (start_step * args.grad_accum) % len(rows)
+
+    step = start_step
     t_start = time.time()
+    accum_loss = 0.0
+    opt.zero_grad()
     with open(log_path, "a", encoding="utf-8") as logf:
-        for epoch in range(args.epochs):
-            random.Random(epoch).shuffle(rows)
-            accum_loss = 0.0
-            opt.zero_grad()
-            for i, row in enumerate(rows):
-                try:
-                    inputs = build_inputs(row, processor)
-                except Exception as e:
-                    print(f"[WARN] fallo procesando {row.get('path')}: {e}", flush=True)
-                    continue
-                inputs = {k: (v.to("mps") if hasattr(v, "to") else v) for k, v in inputs.items()}
-                inputs["input_features"] = inputs["input_features"].to(torch.bfloat16)
+        while step < total_steps:
+            if pos >= len(rows):
+                epoch += 1
+                rng = random.Random(epoch)
+                rng.shuffle(rows)
+                pos = 0
 
-                out = model(**inputs)
-                loss = out.loss / args.grad_accum
-                loss.backward()
-                accum_loss += out.loss.item()
+            row = rows[pos]
+            pos += 1
+            try:
+                inputs = build_inputs(row, processor)
+            except Exception as e:
+                print(f"[WARN] fallo procesando {row.get('path')}: {e}", flush=True)
+                continue
+            inputs = {k: (v.to("mps") if hasattr(v, "to") else v) for k, v in inputs.items()}
+            inputs["input_features"] = inputs["input_features"].to(torch.bfloat16)
 
-                if (i + 1) % args.grad_accum == 0:
-                    opt.step()
-                    opt.zero_grad()
-                    step += 1
-                    if step % args.log_every == 0:
-                        avg_loss = accum_loss / args.grad_accum / args.log_every
-                        elapsed = time.time() - t_start
-                        rec = {"epoch": epoch, "step": step, "example": i, "loss": avg_loss,
-                               "elapsed_s": round(elapsed, 1)}
-                        logf.write(json.dumps(rec) + "\n")
-                        logf.flush()
-                        print(f"[epoch {epoch} step {step}] loss={avg_loss:.4f} "
-                              f"({i+1}/{len(rows)} ejemplos, {elapsed/60:.1f} min)", flush=True)
-                        accum_loss = 0.0
-                    if step % args.save_every_steps == 0:
-                        ckpt_dir = f"{args.output_dir}/checkpoint-{step}"
-                        model.save_pretrained(ckpt_dir)
-                        print(f"[checkpoint guardado en {ckpt_dir}]", flush=True)
+            out = model(**inputs)
+            loss = out.loss / args.grad_accum
+            loss.backward()
+            accum_loss += out.loss.item()
 
-            ckpt_dir = f"{args.output_dir}/checkpoint-epoch{epoch}-step{step}"
-            model.save_pretrained(ckpt_dir)
-            print(f"[epoch {epoch} completa, checkpoint guardado en {ckpt_dir}]", flush=True)
+            if pos % args.grad_accum == 0:
+                opt.step()
+                opt.zero_grad()
+                step += 1
+                if step % args.log_every == 0:
+                    avg_loss = accum_loss / args.grad_accum / args.log_every
+                    elapsed = time.time() - t_start
+                    rec = {"epoch": epoch, "step": step, "elapsed_s": round(elapsed, 1),
+                           "loss": avg_loss}
+                    logf.write(json.dumps(rec) + "\n")
+                    logf.flush()
+                    print(f"[epoch {epoch} step {step}/{total_steps}] loss={avg_loss:.4f} "
+                          f"({elapsed/3600:.2f}h transcurridas)", flush=True)
+                    accum_loss = 0.0
+                if step % args.save_every_steps == 0 or step == total_steps:
+                    ckpt_dir = f"{args.output_dir}/checkpoint-step{step}"
+                    model.save_pretrained(ckpt_dir)
+                    print(f"[checkpoint guardado en {ckpt_dir}]", flush=True)
 
-    final_dir = f"{args.output_dir}/checkpoint-final-step{step}"
-    model.save_pretrained(final_dir)
-    print(f"[DONE] entrenamiento completo -> {final_dir}", flush=True)
+    print(f"[DONE] entrenamiento completo -> {args.output_dir}/checkpoint-step{step}", flush=True)
 
 
 if __name__ == "__main__":

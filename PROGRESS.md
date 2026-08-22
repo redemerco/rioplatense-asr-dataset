@@ -692,3 +692,48 @@ Maté el run (recién había arrancado, sin pérdida real) y relancé con el
 fix. **Cuando llegue el momento de evaluar, voy a correr el benchmark
 contra varios checkpoints (no sólo el último) y reportar cuál generaliza
 mejor, no asumir que más steps = mejor resultado.**
+
+### Fix: bug real en el resume (`start_step=-1` corrompía epoch/posición)
+
+Al agregar `--auto-resume`, `find_latest_checkpoint()` devuelve `-1` como
+sentinela de "no hay checkpoint" — pero yo estaba usando ese `-1` como
+`start_step` real cuando no había checkpoint (en vez de resetear a `0`),
+lo que rompía `epoch = start_step // steps_per_epoch` (daba `-1` por
+floor division) y la posición inicial en el dataset (arrancaba casi al
+final del array por el módulo con un número negativo). Lo agarré porque
+el primer log mostró `[epoch -1 step 0/10070]` con loss sospechosamente
+baja apenas arrancado — no cuadraba. Maté el proceso, arreglé (guardar
+`start_step=0` explícitamente cuando no hay checkpoint), verifiqué la
+función aislada, y relancé limpio. Sin este chequeo cruzado el bug
+hubiera corrompido silenciosamente cualquier reinicio automático futuro.
+
+### Chequeo de salud automático cada 12hs — bloqueado por TCC de macOS
+
+Renzo pidió un mecanismo de chequeo periódico durable (no atado a que
+esta sesión siga abierta) para las semanas que va a durar el training.
+Investigué la ruta de "rutina en la nube" de `/schedule` — no sirve, esos
+agentes corren aislados en la nube de Anthropic sin acceso a esta Mac.
+
+Probé dos rutas locales, ambas con evidencia de que pegan contra el mismo
+límite real de macOS (no un bug mío, un límite de seguridad de Apple):
+1. **crontab**: cuelga esperando un diálogo de autorización TCC que
+   nunca puede aparecer sin sesión gráfica (confirmado 3 veces seguidas,
+   nunca fue transitorio).
+2. **LaunchAgent** (`~/Library/LaunchAgents/com.rioplatense-asr.health-check.plist`,
+   cada 12hs vía `StartInterval`): carga y corre sin colgarse, pero
+   falla leyendo archivos dentro de `~/Desktop/...` con
+   "Operation not permitted". Confirmé la causa exacta: `~/Desktop` tiene
+   el atributo extendido `com.apple.macl` (el marcador de TCC para
+   carpetas protegidas — Desktop/Documents/Downloads). Los permisos Unix
+   están perfectos; el bloqueo es 100% TCC, que Apple diseñó
+   deliberadamente para no poder saltearse por script ni con sudo/root —
+   requiere aprobación humana única desde System Settings.
+
+**El LaunchAgent queda instalado y armado** (script real en
+`~/.local/bin/rioplatense-health-check.sh`, fuera de Desktop para poder
+ejecutarse; el prompt que corre está en
+`scripts/train/health_check_prompt.md`) — en cuanto Renzo dé el permiso
+de "Files and Folders: Desktop" a Terminal en System Settings (30
+segundos, una sola vez), empieza a funcionar solo sin que yo toque nada
+más. Mientras tanto sigo haciendo estos chequeos yo misma dentro de la
+sesión interactiva, como ya venía.
