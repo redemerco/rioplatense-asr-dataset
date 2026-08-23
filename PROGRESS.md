@@ -866,3 +866,12 @@ variabilidad esperada, no es tendencia sostenida al alza). Sin ningún
 "grad_norm no finito" en el log — el fix de gradient clipping sigue
 sosteniéndose. Checkpoints en step50 y step100, ambos guardados OK.
 Disco: 33GB libres, sin problema. No reinicié nada. Sin novedades.
+
+## 2026-08-23 11:33 — Chequeo automático (cron)
+
+Proceso vivo (PID 61050, corriendo desde ayer 13:43, mismo PID que el
+chequeo anterior — sin caídas en las últimas 12hs). Progreso: epoch 0,
+step 260/10070, loss=0.5259, tendencia descendente sostenida desde
+0.7294 (step 100) hasta acá. Sin ningún "grad_norm no finito" en el log
+(0 ocurrencias). Checkpoints hasta step250, todos guardados OK. Disco:
+31GB libres, sin problema. No reinicié nada. Sin novedades.
