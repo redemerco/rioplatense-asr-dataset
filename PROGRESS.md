@@ -856,3 +856,13 @@ pasar.
 normal, ya no NaN. El gradient clipping resolvió el problema. Sigo
 vigilando los próximos logs para confirmar que la loss desciende de
 forma razonable y no vuelve a aparecer ningún "grad_norm no finito".
+
+## 2026-08-22 23:29 — Chequeo automático (cron)
+
+Proceso vivo (PID 61050, RSS ~80MB, corriendo desde 13:43). Progreso:
+epoch 0, step 100/10070, loss=0.7294 (bajó de 1.4945 en step 20 a 0.6622
+en step 80, con leve rebote a 0.7294 en step 100 — dentro de la
+variabilidad esperada, no es tendencia sostenida al alza). Sin ningún
+"grad_norm no finito" en el log — el fix de gradient clipping sigue
+sosteniéndose. Checkpoints en step50 y step100, ambos guardados OK.
+Disco: 33GB libres, sin problema. No reinicié nada. Sin novedades.
