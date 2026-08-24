@@ -857,6 +857,61 @@ normal, ya no NaN. El gradient clipping resolvió el problema. Sigo
 vigilando los próximos logs para confirmar que la loss desciende de
 forma razonable y no vuelve a aparecer ningún "grad_norm no finito".
 
+## 2026-08-24 09:00 — Investigación de batching real: NO mejora en esta máquina
+
+Renzo pidió evaluar si `batch_size=1` + `grad_accum` (en vez de batching
+real con `batch_size>1` y carga paralela) estaba desperdiciando cómputo
+en MPS. Pidió explícitamente: implementar, **benchmarkear antes de
+comprometerse**, y sólo migrar si el número lo confirma.
+
+Armé `scripts/train/bench_batching.py`: `DataLoader` con `num_workers`,
+`collate_fn` que arma un batch real (padding de audio de duración
+variable + texto, usando el soporte nativo del processor para listas) y
+mide steps/hora. Nota técnica: en Python 3.14 en macOS, `multiprocessing`
+con DataLoader workers requiere que el `collate_fn` sea *picklable* — una
+closure no sirve (falla con `Got pickle error`), hubo que usar una clase
+top-level que carga su propio `AutoProcessor` perezosamente por worker.
+
+**Resultado del benchmark (con el training real pausado para no
+contaminar la medición):**
+
+| Config | Resultado | Ejemplos/hora |
+|---|---|---|
+| Baseline actual (`batch_size=1`, `grad_accum=8`) | ~12.3 steps efectivos/hora | **~98.4** |
+| `batch_size=2`, `num_workers=2` | 82.5s/step (promedio de 6 steps) | **~87.3** (11% más lento) |
+| `batch_size=4`, `num_workers=2` | **OOM** en el primer backward (`MPS backend out of memory`, 7.77GB de 9.07GB máximo) | — |
+
+**Conclusión, con evidencia, no intuición: el batching real NO ayuda acá,
+lo empeora o directamente no entra en memoria.** Explicación más
+probable: el audio dentro de un batch tiene duración variable, así que
+batchear obliga a paddear todos los clips a la duración del más largo
+del lote — con clips que van de ~3s a ~19s, un batch de 2 puede terminar
+gastando cómputo real en silencio de padding, más el overhead de spawnear
+workers/procesos para un beneficio que nunca llega, porque el cuello de
+botella real es cómputo de MPS (forward+backward de un modelo de 1.7B
+con gradient checkpointing), no espera de I/O — con clips cortos y
+lectura de disco local, el tiempo de CPU/carga de datos es insignificante
+frente a los ~50s de cómputo por ejemplo. En una GPU con mucha más
+memoria/ancho de banda el cálculo podría ser distinto; en esta M1 de 8GB
+no lo es.
+
+**Decisión: no toco el training real.** El esquema actual
+(`batch_size=1` + `grad_accum=8`) sigue siendo el más rápido medido en
+esta máquina. Sobre el learning rate: no hizo falta tocarlo porque nunca
+cambié el batch efectivo (seguía siendo 8) — si el batching hubiera
+ganado, lo habría mantenido en 8 (ej. `batch_size=4` + `grad_accum=2`)
+específicamente para no tener que re-tunear el LR a ciegas.
+
+Pausé el training real unos minutos para poder benchmarkear sin
+contaminación de RAM/MPS (la lección de la vez anterior: dos procesos
+pesados compitiendo por 8GB da resultados basura). Se perdieron los
+steps 501-520 (ya logueados pero sin checkpoint posterior — el próximo
+guardado era en el 550). Relancé con `--auto-resume`: **confirmado que
+retomó bien desde `checkpoint-step500`** (log: `[RESUME] retomando desde
+.../checkpoint-step500 (step 500)`), no arrancó de cero. Estimación de
+tiempo restante sin cambios: sigue en el orden de ~35 días totales para
+las 2 épocas completas al ritmo medido (~12.3 steps efectivos/hora).
+
 ## 2026-08-22 23:29 — Chequeo automático (cron)
 
 Proceso vivo (PID 61050, RSS ~80MB, corriendo desde 13:43). Progreso:

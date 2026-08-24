@@ -3,6 +3,7 @@
 raw_cache/
 logs/
 models/
+local_clips/
 __pycache__/
 *.pyc
 .DS_Store
