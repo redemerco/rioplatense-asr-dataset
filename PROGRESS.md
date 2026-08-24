@@ -875,3 +875,13 @@ step 260/10070, loss=0.5259, tendencia descendente sostenida desde
 0.7294 (step 100) hasta acá. Sin ningún "grad_norm no finito" en el log
 (0 ocurrencias). Checkpoints hasta step250, todos guardados OK. Disco:
 31GB libres, sin problema. No reinicié nada. Sin novedades.
+
+## 2026-08-23 12:00 — Chequeo automático (cron)
+
+Proceso vivo (PID 61050, mismo PID que los chequeos anteriores — sin
+caídas en las últimas 12hs). Progreso: epoch 0, step 400/10070,
+loss=0.5209, tendencia descendente sostenida desde 0.5259 (step 260)
+hasta acá, con la variabilidad normal punto a punto. Sin ningún
+"grad_norm no finito" en el log (0 ocurrencias). Checkpoints hasta
+step400, todos guardados OK. Disco: 32GB libres, sin problema. No
+reinicié nada. Sin novedades.
