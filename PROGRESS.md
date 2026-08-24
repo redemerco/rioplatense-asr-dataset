@@ -940,3 +940,15 @@ hasta acá, con la variabilidad normal punto a punto. Sin ningún
 "grad_norm no finito" en el log (0 ocurrencias). Checkpoints hasta
 step400, todos guardados OK. Disco: 32GB libres, sin problema. No
 reinicié nada. Sin novedades.
+
+## 2026-08-24 — Chequeo automático (cron)
+
+Proceso vivo (PID 67745, corriendo desde las 9:06 de hoy — el PID
+cambió respecto al chequeo anterior porque una sesión interactiva lo
+reinició para el benchmark de batching documentado arriba, no por una
+caída; confirmado resume correcto desde checkpoint-step500). Progreso:
+epoch 0, step 520/10070, loss=0.4151, tendencia descendente sostenida
+desde 0.5209 (step 400). Un solo `[WARN] grad_norm no finito` aislado
+en step 506 (no hay racha sostenida). Checkpoints hasta step500, todos
+guardados OK. Disco: 33GB libres, sin problema. No reinicié nada. Sin
+novedades.
