@@ -992,3 +992,13 @@ reinvestigo en serio (bajar LR, o investigar más a fondo el origen).
 Step 800: loss=0.5357, sin ningún WARN nuevo desde los dos consecutivos
 (787-788). Se confirma que fue un evento aislado, no el comienzo de un
 patrón sostenido. Vuelvo al intervalo normal de chequeo (1h).
+
+## 2026-08-25 — Chequeo automático (cron)
+
+Proceso vivo (PID 67745, mismo PID que los chequeos anteriores — sin
+caídas). Progreso: epoch 0, step 860/10070, loss=0.5385, dentro del
+rango de variabilidad normal (~0.4-0.55). Nuevo NaN aislado en step 839
+(distinto de los ya reportados 506, 747, 787-788), sin steps
+consecutivos afectados — sigue sin haber patrón sostenido. Checkpoints
+hasta step850, todos guardados OK. Disco: 32GB libres, sin problema. No
+reinicié nada. Sin novedades.
