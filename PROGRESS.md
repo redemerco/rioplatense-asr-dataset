@@ -952,3 +952,14 @@ desde 0.5209 (step 400). Un solo `[WARN] grad_norm no finito` aislado
 en step 506 (no hay racha sostenida). Checkpoints hasta step500, todos
 guardados OK. Disco: 33GB libres, sin problema. No reinicié nada. Sin
 novedades.
+
+## 2026-08-24 23:32 — Chequeo automático (cron)
+
+Proceso vivo (PID 67745, mismo PID que el chequeo anterior de hoy —
+sin caídas en las últimas 12hs). Progreso: epoch 0, step 680/10070,
+loss=0.5038, oscilando en el rango ~0.48-0.55 desde step 520 (sin
+tendencia clara ascendente ni descendente en este tramo, dentro de la
+variabilidad normal). El único `[WARN] grad_norm no finito` sigue
+siendo el mismo aislado en step 506 ya reportado (0 ocurrencias
+nuevas). Checkpoints hasta step650, todos guardados OK. Disco: 32GB
+libres, sin problema. No reinicié nada. Sin novedades.
