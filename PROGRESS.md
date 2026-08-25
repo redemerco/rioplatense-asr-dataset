@@ -1002,3 +1002,15 @@ rango de variabilidad normal (~0.4-0.55). Nuevo NaN aislado en step 839
 consecutivos afectados — sigue sin haber patrón sostenido. Checkpoints
 hasta step850, todos guardados OK. Disco: 32GB libres, sin problema. No
 reinicié nada. Sin novedades.
+
+## 2026-08-25 15:17 — Chequeo automático (cron)
+
+Proceso NO estaba corriendo (se había caído; no hay registro de causa
+en el log, no aparece error explícito). Es la primera caída real
+detectada — todos los chequeos previos mostraban el mismo PID vigente.
+Último progreso antes de la caída: step 920/10070, loss=0.5308.
+Checkpoints hasta step900 OK. Reinicié invocando el binario del venv
+directo con --auto-resume; confirmado resume correcto desde
+checkpoint-step900 (log muestra "[RESUME] retomando desde
+checkpoint-step900"). Disco: 41GB libres, sin problema. NaNs previos
+(steps 506, 747, 787-788, 839) siguen sin formar un patrón sostenido.
