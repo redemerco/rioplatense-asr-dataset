@@ -963,3 +963,12 @@ variabilidad normal). El único `[WARN] grad_norm no finito` sigue
 siendo el mismo aislado en step 506 ya reportado (0 ocurrencias
 nuevas). Checkpoints hasta step650, todos guardados OK. Disco: 32GB
 libres, sin problema. No reinicié nada. Sin novedades.
+
+## 2026-08-25 03:30 — Segundo NaN aislado (step 747), manejado bien
+
+Nuevo "grad_norm no finito" en step 747 (distinto del ya conocido en
+step 506). Van 2 steps distintos con NaN en ~750 steps totales (~0.27%),
+ambos manejados correctamente por el skip automático — no hay pérdida de
+progreso ni corrupción de pesos. Sigue sin ser un patrón preocupante
+(no son varios seguidos), pero lo dejo anotado para tener el registro
+completo si en algún momento se vuelve más frecuente.
