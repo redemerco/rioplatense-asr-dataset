@@ -986,3 +986,9 @@ que el diagnóstico anterior no pudo aislar por ejemplo individual — la
 inestabilidad parece ser del backward, no de un dato puntual corrupto).
 Sigo vigilando de cerca — si esto escala a un patrón sostenido, paro y
 reinvestigo en serio (bajar LR, o investigar más a fondo el origen).
+
+## 2026-08-25 06:55 — Confirmado: se normalizó tras los NaN consecutivos
+
+Step 800: loss=0.5357, sin ningún WARN nuevo desde los dos consecutivos
+(787-788). Se confirma que fue un evento aislado, no el comienzo de un
+patrón sostenido. Vuelvo al intervalo normal de chequeo (1h).
