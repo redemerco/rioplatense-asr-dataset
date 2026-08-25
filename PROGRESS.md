@@ -972,3 +972,17 @@ ambos manejados correctamente por el skip automático — no hay pérdida de
 progreso ni corrupción de pesos. Sigue sin ser un patrón preocupante
 (no son varios seguidos), pero lo dejo anotado para tener el registro
 completo si en algún momento se vuelve más frecuente.
+
+## 2026-08-25 06:35 — ⚠️ Dos NaN consecutivos (steps 787, 788)
+
+Por primera vez, dos steps seguidos con "grad_norm no finito" (antes
+siempre habían sido aislados, separados por cientos de steps). Loss
+justo antes (step 780) era 0.4010 — normal, no hay señal de degradación
+del modelo. Los dos updates se saltearon correctamente (sin corromper
+pesos), el proceso sigue vivo y corriendo. No hay un tercer NaN
+inmediato después. Hipótesis más probable: coincidencia de dos ejemplos
+problemáticos consecutivos en el stream de datos (mismo tipo de causa
+que el diagnóstico anterior no pudo aislar por ejemplo individual — la
+inestabilidad parece ser del backward, no de un dato puntual corrupto).
+Sigo vigilando de cerca — si esto escala a un patrón sostenido, paro y
+reinvestigo en serio (bajar LR, o investigar más a fondo el origen).
