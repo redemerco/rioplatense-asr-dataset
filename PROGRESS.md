@@ -1014,3 +1014,20 @@ directo con --auto-resume; confirmado resume correcto desde
 checkpoint-step900 (log muestra "[RESUME] retomando desde
 checkpoint-step900"). Disco: 41GB libres, sin problema. NaNs previos
 (steps 506, 747, 787-788, 839) siguen sin formar un patrón sostenido.
+
+## 2026-08-26 20:38 — ⚠️ Segunda caída silenciosa, reiniciado desde checkpoint-step950
+
+Proceso NO estaba corriendo. El reinicio anterior (15:18 del 25/8)
+corrió bien ~4h (sin ningún WARN grad_norm) hasta step 960/10070,
+loss=0.4310, y se cortó ahí sin ningún error en el log — mismo patrón
+que la caída anterior (sin traza, sin excepción). Quedó caído desde
+~19:23 del 25/8 hasta este chequeo (~25h sin entrenar; este chequeo
+llegó ~29h después del anterior en vez de las 12h esperadas, no
+investigué la causa del hueco de scheduling). Van 2 caídas silenciosas
+documentadas, separadas por ~29h — no llega al umbral de "más de 2 en
+24h", pero el patrón repetido (siempre sin error explícito) amerita
+que una sesión interactiva revise si hay algo sistemático (¿OOM
+silencioso, throttling térmico, sleep del sistema?). Reinicié
+invocando el binario del venv directo con --auto-resume; confirmado
+resume correcto desde checkpoint-step950. Disco: 35GB libres, sin
+problema.
