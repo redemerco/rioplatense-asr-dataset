@@ -1042,3 +1042,23 @@ guardado), loss=0.4956, dentro del rango de variabilidad normal
 correctamente; loss se normalizó enseguida después (0.46-0.51), sin
 señal de degradación. Checkpoints hasta step1150 OK. Disco: 32GB libres,
 sin problema. No reinicié nada. Sin novedades.
+
+## 2026-08-27 20:41 — ⚠️ Disco cayendo rápido (32GB→17GB en ~12h), sin causa aparente en el entrenamiento
+
+Proceso vivo (PID 1584, mismo desde el chequeo anterior — sin caídas).
+Progreso: epoch 0, step 1320/10070, loss=0.4690, dentro del rango
+normal (~0.43-0.53). Nuevo NaN aislado en step 1319 (distinto de los ya
+documentados 506, 747, 787-788, 839, 1031-1032), sin steps consecutivos
+afectados — sigue sin patrón sostenido. Checkpoints hasta step1300 OK.
+
+Alarma: espacio libre bajó de 32GB (chequeo de las 08:39) a 17GB ahora,
+en las mismas ~12h. Verifiqué que no es por los checkpoints del
+entrenamiento: el directorio completo `models/qwen3-asr-rioplatense-lora/`
+(26 checkpoints acumulados desde step50, ninguno se está limpiando) pesa
+apenas 984M en total — no explica ni de cerca los ~15GB perdidos. Algo
+más en el disco está consumiendo espacio rápido; no investigué más a
+fondo (fuera de alcance de este chequeo automático — no debo tocar el
+dataset ni explorar el filesystem por mi cuenta). Todavía por encima
+del umbral de 5GB así que no interrumpí nada, pero a este ritmo se
+llegaría al umbral en menos de 12h. **Necesita criterio humano**: revisar
+qué está llenando el disco antes del próximo chequeo.
