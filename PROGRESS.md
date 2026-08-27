@@ -1031,3 +1031,14 @@ silencioso, throttling térmico, sleep del sistema?). Reinicié
 invocando el binario del venv directo con --auto-resume; confirmado
 resume correcto desde checkpoint-step950. Disco: 35GB libres, sin
 problema.
+
+## 2026-08-27 08:39 — Chequeo automático (cron)
+
+Proceso vivo (PID 1584, nuevo desde el reinicio del chequeo anterior —
+sin caídas en estas ~12h). Progreso: epoch 0, step 1150/10070 (checkpoint
+guardado), loss=0.4956, dentro del rango de variabilidad normal
+(~0.4-0.51). Nuevo evento de dos NaN consecutivos en steps 1031-1032
+(mismo patrón que el ya documentado en 787-788), ambos salteados
+correctamente; loss se normalizó enseguida después (0.46-0.51), sin
+señal de degradación. Checkpoints hasta step1150 OK. Disco: 32GB libres,
+sin problema. No reinicié nada. Sin novedades.
