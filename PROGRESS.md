@@ -1062,3 +1062,20 @@ dataset ni explorar el filesystem por mi cuenta). Todavía por encima
 del umbral de 5GB así que no interrumpí nada, pero a este ritmo se
 llegaría al umbral en menos de 12h. **Necesita criterio humano**: revisar
 qué está llenando el disco antes del próximo chequeo.
+
+
+## 2026-08-28 08:41 — ⚠️ Disco se estabilizó (17GB→15GB en 12h) pero sigue bajando; entrenamiento sano
+
+Proceso vivo (PID 1584, mismo desde el chequeo anterior — sin caídas).
+Progreso: epoch 0, step 1500/10070, loss=0.4724, dentro del rango
+normal (~0.43-0.53). Tres NaN aislados nuevos en steps 1335, 1346 y
+1410 (ninguno consecutivo entre sí ni con los ya documentados), todos
+salteados correctamente sin degradación posterior — sigue sin patrón
+sostenido. Checkpoints hasta step1500 OK.
+
+Disco: bajó de 17GB (chequeo de las 20:41 del 27/8) a 15GB ahora — la
+caída se frenó fuerte comparada con el ciclo anterior (32GB→17GB), pero
+sigue sin causa identificada y sigue bajando. Todavía por encima del
+umbral de 5GB, no interrumpí nada. **Necesita criterio humano**: la
+causa del consumo de disco de los últimos dos chequeos sigue sin
+investigar.
