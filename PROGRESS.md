@@ -1079,3 +1079,23 @@ sigue sin causa identificada y sigue bajando. Todavía por encima del
 umbral de 5GB, no interrumpí nada. **Necesita criterio humano**: la
 causa del consumo de disco de los últimos dos chequeos sigue sin
 investigar.
+
+
+## 2026-08-30 13:36 — ⚠️ Tercera caída silenciosa (gap de ~53h en el cron), reiniciado desde checkpoint-step1600
+
+Proceso NO estaba corriendo. Log termina limpio en checkpoint-step1600
+(43.29h transcurridas, loss=0.4525) sin ningún error ni traceback —
+mismo patrón sin causa aparente que las dos caídas silenciosas
+anteriores (25/8 y 26/8). Además, este chequeo debería haber corrido
+~12h después del anterior (28/8 08:41) pero llegó ~53h después —hueco
+grande de scheduling del cron, no investigado (fuera de alcance).
+Reinicié invocando el binario del venv directo con --auto-resume;
+confirmado resume correcto desde checkpoint-step1600 (PID 1485). Seis
+NaN aislados nuevos desde el último chequeo (steps 1335, 1346, 1410 ya
+reportados, sin patrón sostenido). Disco: 26GB libres, se recuperó
+respecto a los 15GB del chequeo anterior — sin alarma, pero la causa de
+esas fluctuaciones sigue sin investigar. **Necesita criterio humano**:
+(1) el patrón recurrente de caídas silenciosas sin traza en el log
+amerita revisión (¿sleep del sistema, OOM silencioso?); (2) el hueco de
+~53h en el scheduling del cron; (3) la causa de las fluctuaciones de
+disco de chequeos previos.
