@@ -1113,3 +1113,18 @@ el mismo patrón de fluctuación sin causa identificada de chequeos
 previos. Todavía por encima del umbral de 5GB, no interrumpí nada.
 **Necesita criterio humano**: sigue pendiente investigar la causa del
 consumo de disco (puntos (1)-(3) del chequeo anterior siguen abiertos).
+
+## 2026-08-31 13:37 — Chequeo automático (cron): entrenamiento sano, step 1980/10070, disco se frenó en 16GB
+
+Proceso vivo (PID 1485, mismo desde el reinicio del 30/8 — sin caídas
+nuevas en estas ~12h). Progreso: epoch 0, step 1980/10070, loss=0.4144,
+dentro del rango normal (~0.41-0.53). Checkpoints hasta step1950 OK.
+Cuatro NaN aislados nuevos (steps 1909, 1916, 1973, 1978), en dos pares
+separados por steps sanos entremedio, sin patrón sostenido ni
+degradación posterior de la loss.
+
+Disco: 16GB libres, sin cambio respecto al chequeo anterior (01:37) —
+por primera vez la caída se detuvo del todo. Todavía por encima del
+umbral de 5GB. **Necesita criterio humano**: sigue pendiente investigar
+la causa de fondo del consumo de disco de chequeos previos (aunque esta
+vez no bajó más).
