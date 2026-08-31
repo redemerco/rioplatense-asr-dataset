@@ -1099,3 +1099,17 @@ esas fluctuaciones sigue sin investigar. **Necesita criterio humano**:
 amerita revisión (¿sleep del sistema, OOM silencioso?); (2) el hueco de
 ~53h en el scheduling del cron; (3) la causa de las fluctuaciones de
 disco de chequeos previos.
+
+## 2026-08-31 01:37 — ⚠️ Disco sigue bajando (26GB→16GB en ~12h); entrenamiento sano, sin caídas
+
+Proceso vivo (PID 1485, mismo desde el reinicio del chequeo anterior —
+sin caídas nuevas en estas ~12h). Progreso: epoch 0, step 1780/10070,
+loss=0.4517, dentro del rango normal (~0.42-0.52). Cero ocurrencias de
+"grad_norm no finito" en el log desde el resume en step1600 — sin
+inestabilidad en este segmento. Checkpoints hasta step1750 OK.
+
+Disco: bajó de 26GB (chequeo del 30/8 13:36) a 16GB ahora, continuando
+el mismo patrón de fluctuación sin causa identificada de chequeos
+previos. Todavía por encima del umbral de 5GB, no interrumpí nada.
+**Necesita criterio humano**: sigue pendiente investigar la causa del
+consumo de disco (puntos (1)-(3) del chequeo anterior siguen abiertos).
