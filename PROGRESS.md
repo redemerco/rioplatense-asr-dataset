@@ -1128,3 +1128,18 @@ por primera vez la caída se detuvo del todo. Todavía por encima del
 umbral de 5GB. **Necesita criterio humano**: sigue pendiente investigar
 la causa de fondo del consumo de disco de chequeos previos (aunque esta
 vez no bajó más).
+
+## 2026-09-01 01:39 — ⚠️ Chequeo automático (cron): entrenamiento sano, step 2180/10070, disco volvió a bajar (16GB→13GB)
+
+Proceso vivo (PID 1485, mismo desde el reinicio del 30/8 — sin caídas
+nuevas en estas ~12h). Progreso: epoch 0, step 2180/10070, loss=0.4411,
+dentro del rango normal (~0.41-0.52). Checkpoints hasta step2150 OK. Un
+solo NaN aislado nuevo (step 2052), sin patrón sostenido.
+
+Disco: 13GB libres, bajó de nuevo desde los 16GB del chequeo anterior
+(31/8 13:37) — la pausa fue temporal. Todavía por encima del umbral de
+5GB, no interrumpí nada, pero la tendencia general sigue siendo a la
+baja. **Necesita criterio humano**: sigue pendiente investigar la causa
+de fondo del consumo de disco (mismo punto abierto desde el 30/8);
+conviene revisarlo pronto ya que quedan 13GB y el entrenamiento todavía
+tiene ~7890 steps por delante.
