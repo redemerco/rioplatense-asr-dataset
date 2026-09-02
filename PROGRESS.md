@@ -1143,3 +1143,23 @@ baja. **Necesita criterio humano**: sigue pendiente investigar la causa
 de fondo del consumo de disco (mismo punto abierto desde el 30/8);
 conviene revisarlo pronto ya que quedan 13GB y el entrenamiento todavía
 tiene ~7890 steps por delante.
+
+## 2026-09-01 22:06 — ⚠️ Chequeo automático (cron): cuarta caída silenciosa, reiniciado desde checkpoint-step2250
+
+Proceso NO estaba corriendo. Log termina limpio en checkpoint-step2250
+(38.77h transcurridas, loss=0.4034, última actividad 04:53) sin ningún
+error ni traceback — mismo patrón sin causa aparente que las tres caídas
+silenciosas anteriores (25/8, 26/8, 30/8), y es la primera en las
+últimas 24h (la anterior fue el 30/8), así que no dispara la alarma de
+"más de 2 caídas en 24h". Progreso previo: epoch 0, step 2240/10070,
+dentro del rango normal de loss (~0.40-0.53). Un solo NaN aislado nuevo
+desde el chequeo anterior (step 2240), sin patrón sostenido.
+
+Reinicié invocando el binario del venv directo con --auto-resume;
+confirmado resume correcto desde checkpoint-step2250 (PID 1705). Disco:
+25GB libres, se recuperó respecto a los 13GB del chequeo anterior — sin
+alarma. **Necesita criterio humano**: el patrón recurrente de caídas
+silenciosas sin traza en el log (van cuatro) sigue sin investigar
+(¿sleep del sistema, OOM silencioso, algo del scheduling del cron?); la
+causa de fondo de las fluctuaciones de disco tampoco se investigó
+todavía.
