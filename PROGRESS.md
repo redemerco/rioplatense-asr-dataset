@@ -1183,3 +1183,19 @@ error, siempre a pocas horas de arrancar — vale la pena investigar la
 causa de fondo (¿sleep del sistema, OOM silencioso, algo del scheduling
 del cron?) en vez de seguir reiniciando indefinidamente. También revisar
 por qué el cron tuvo un gap de ~56h esta vez.
+
+## 2026-09-04 18:05 — Chequeo automático (cron): entrenamiento sano, step 2540/10070, sin caídas nuevas
+
+Proceso vivo (PID 2791, mismo desde el reinicio del chequeo anterior —
+sin caídas nuevas en este intervalo). Progreso: epoch 0, step 2540/10070,
+loss=0.4829, dentro del rango normal (~0.38-0.50). Checkpoints hasta
+step2500 OK. Un solo "grad_norm no finito" aislado (step 2502), sin
+patrón sostenido.
+
+Disco: 15GB libres, bajó desde los 24GB del chequeo anterior — todavía
+por encima del umbral de 5GB, no interrumpí nada, pero sumo esta caída
+al patrón de fluctuación sin causa identificada que sigue abierto.
+
+**Necesita criterio humano**: siguen abiertos los dos puntos de chequeos
+anteriores — la causa de fondo de las caídas silenciosas recurrentes
+(van cinco) y la causa del consumo/fluctuación de disco.
