@@ -1163,3 +1163,23 @@ silenciosas sin traza en el log (van cuatro) sigue sin investigar
 (¿sleep del sistema, OOM silencioso, algo del scheduling del cron?); la
 causa de fondo de las fluctuaciones de disco tampoco se investigó
 todavía.
+
+## 2026-09-04 06:04 — Chequeo automático (cron)
+
+⚠️ Quinta caída silenciosa (sin traceback en el log), mismo patrón que las
+cuatro anteriores. Además hubo un gap grande de cron: el chequeo anterior
+fue el 1/9 22:07 y este corrió recién el 4/9 06:04 (~56h), así que no se
+sabe con precisión cuándo murió el proceso — el último dato del log es
+del 2/9 04:12, ~6h después del reinicio previo (consistente con el
+patrón de caída a las pocas horas). Progreso: epoch 0, step 2360/10070,
+loss en rango normal (~0.42-0.48). Un solo "grad_norm no finito" aislado,
+sin patrón sostenido. Disco: 24GB libres, sin alarma.
+
+Reinicié invocando el binario del venv directo con --auto-resume;
+confirmado resume correcto desde checkpoint-step2350 (PID 2791).
+
+**Necesita criterio humano**: van cinco caídas silenciosas sin traza de
+error, siempre a pocas horas de arrancar — vale la pena investigar la
+causa de fondo (¿sleep del sistema, OOM silencioso, algo del scheduling
+del cron?) en vez de seguir reiniciando indefinidamente. También revisar
+por qué el cron tuvo un gap de ~56h esta vez.
