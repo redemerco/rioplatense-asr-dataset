@@ -1199,3 +1199,19 @@ al patrón de fluctuación sin causa identificada que sigue abierto.
 **Necesita criterio humano**: siguen abiertos los dos puntos de chequeos
 anteriores — la causa de fondo de las caídas silenciosas recurrentes
 (van cinco) y la causa del consumo/fluctuación de disco.
+
+## 2026-09-05 — Chequeo automático (cron): entrenamiento sano, step 2700/10070, sin caídas nuevas
+
+Proceso vivo (PID 2791, mismo desde el chequeo anterior del 4/9 18:05 —
+sin caídas nuevas en este intervalo). Progreso: epoch 0, step 2700/10070,
+loss=0.4128, dentro del rango normal (~0.37-0.49). Checkpoints hasta
+step2700 OK. Sin "grad_norm no finito" nuevos (sigue siendo el único de
+step 2502, ya reportado antes).
+
+Disco: 14GB libres, bajó apenas desde los 15GB del chequeo anterior —
+todavía por encima del umbral de 5GB, no interrumpí nada.
+
+**Necesita criterio humano**: siguen abiertos los mismos puntos de
+chequeos anteriores — la causa de fondo de las caídas silenciosas
+recurrentes (van cinco, ninguna nueva en este intervalo) y la causa del
+consumo/fluctuación de disco.
