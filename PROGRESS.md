@@ -1215,3 +1215,21 @@ todavía por encima del umbral de 5GB, no interrumpí nada.
 chequeos anteriores — la causa de fondo de las caídas silenciosas
 recurrentes (van cinco, ninguna nueva en este intervalo) y la causa del
 consumo/fluctuación de disco.
+
+## 2026-09-05 18:07 — Chequeo automático (cron): entrenamiento sano, step 2820/10070, sin caídas nuevas
+
+Proceso vivo (PID 2791, mismo desde el chequeo anterior del 5/9 06:06 —
+sin caídas nuevas en este intervalo). Progreso: epoch 0, step 2820/10070,
+loss=0.4223, dentro del rango normal (~0.34-0.49). Checkpoints hasta
+step2800 OK. Sin "grad_norm no finito" nuevos (sigue siendo el único de
+step 2502, ya reportado antes).
+
+Disco: 12GB libres, bajó apenas desde los 14GB del chequeo anterior —
+todavía por encima del umbral de 5GB, no interrumpí nada, pero sigue la
+tendencia lenta a la baja.
+
+**Necesita criterio humano**: siguen abiertos los mismos puntos de
+chequeos anteriores — la causa de fondo de las caídas silenciosas
+recurrentes (van cinco, ninguna nueva en este intervalo) y la causa del
+consumo/fluctuación de disco (ahora en 12GB, conviene revisar antes de
+que se acerque más al umbral de 5GB).
