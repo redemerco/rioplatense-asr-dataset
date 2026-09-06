@@ -1250,3 +1250,20 @@ haberse estabilizado en este intervalo.
 chequeos anteriores — la causa de fondo de las caídas silenciosas
 recurrentes (van cinco, ninguna nueva en este intervalo) y la causa del
 consumo/fluctuación de disco.
+
+## 2026-09-06 18:09 — Chequeo automático (cron): entrenamiento sano, step 3020/10070, sin caídas nuevas
+
+Proceso vivo (PID 2791, mismo desde el chequeo anterior del 6/9 — sin
+caídas nuevas en este intervalo). Progreso: epoch 0, step 3020/10070,
+loss=0.4081, dentro del rango normal (~0.34-0.49). Checkpoints hasta
+step3000 OK. Un nuevo "grad_norm no finito" aislado en step 2925 (van
+dos en total, ambos aislados y sin patrón sostenido, no corrompieron
+pesos).
+
+Disco: 11GB libres, bajó apenas desde los 12GB del chequeo anterior —
+todavía por encima del umbral de 5GB, no interrumpí nada.
+
+**Necesita criterio humano**: siguen abiertos los mismos puntos de
+chequeos anteriores — la causa de fondo de las caídas silenciosas
+recurrentes (van cinco, ninguna nueva en este intervalo) y la causa del
+consumo/fluctuación de disco.
