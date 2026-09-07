@@ -1267,3 +1267,30 @@ todavía por encima del umbral de 5GB, no interrumpí nada.
 chequeos anteriores — la causa de fondo de las caídas silenciosas
 recurrentes (van cinco, ninguna nueva en este intervalo) y la causa del
 consumo/fluctuación de disco.
+
+## 2026-09-07 06:10 — Chequeo automático (cron): entrenamiento sano, step 3140/10070, sin caídas nuevas
+
+Proceso vivo (PID 2791, mismo desde el chequeo anterior del 6/9 18:09 —
+sin caídas nuevas en este intervalo). Progreso: epoch 0, step 3140/10070,
+loss=0.4579, dentro del rango normal (~0.34-0.49). Checkpoints hasta
+step3100 OK.
+
+⚠️ Los "grad_norm no finito" cambiaron de patrón: hasta el chequeo
+anterior eran dos, aislados y muy espaciados (steps 2502 y 2925). En
+este intervalo aparecieron 4 nuevos, agrupados en apenas 48 steps
+(3080, 3103, 3115, 3128) — van 6 en total. El skip-si-no-finito sigue
+funcionando (loss se mantiene estable, sin corrupción de pesos), pero
+la mayor frecuencia sugiere que vale la pena que alguien revise si hay
+algo más de fondo.
+
+⚠️ Disco: 9.1GB libres, bajó de 11GB en este intervalo (casi 2GB en 12h,
+más rápido que en chequeos previos donde la tendencia parecía
+estabilizada). Todavía por encima del umbral de 5GB, no interrumpí
+nada, pero al ritmo actual convendría revisarlo antes del próximo o
+siguiente chequeo.
+
+**Necesita criterio humano**: los mismos puntos de chequeos anteriores
+(causa de fondo de las caídas silenciosas recurrentes, van cinco,
+ninguna nueva en este intervalo) más los dos puntos marcados arriba —
+el cambio de patrón en grad_norm y la aceleración en el consumo de
+disco.
